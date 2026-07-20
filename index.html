@@ -158,6 +158,24 @@
   .toast.show { opacity: 1; }
   .legend { font-size: 12.5px; color: var(--muted); margin: 10px 0 2px; }
   .legend b { font-weight: 700; }
+
+  .score-wrap { display: flex; align-items: center; gap: 16px; padding: 10px 14px 0; }
+  .score-big { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1; }
+  .score-sub { font-size: 17px; color: var(--muted); font-weight: 600; }
+  .score-side { flex: 1; min-width: 0; }
+  .grade { display: inline-block; padding: 3px 14px; border-radius: 999px; font-weight: 800; font-size: 18px; color: #fff; background: var(--muted); }
+  .grade.g-a { background: var(--ok); }
+  .grade.g-b { background: var(--accent); }
+  .grade.g-c { background: var(--nc); }
+  .grade.g-d { background: var(--crit); }
+  .grade-label { font-size: 13px; color: var(--muted); margin-top: 5px; }
+  .crit-warn { margin: 10px 14px 0; padding: 8px 10px; border-radius: 8px; background: var(--crit-soft); color: var(--crit); font-size: 13px; font-weight: 600; }
+  ul.sec-scores { list-style: none; margin: 10px 0 0; padding: 0 0 8px; }
+  .sec-scores li { display: flex; align-items: center; gap: 10px; padding: 5px 14px; font-size: 13px; }
+  .sec-scores .sname { flex: 0 0 45%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sec-scores .sbar { display: block; flex: 1; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .sec-scores .sfill { display: block; height: 100%; border-radius: 3px; background: var(--ok); }
+  .sec-scores .sval { flex: 0 0 46px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
 </style>
 
 <header class="top">
@@ -178,6 +196,25 @@
 <main class="wrap" id="app">
   <p class="legend">Pour chaque point : <b>✓</b> conforme · <b>✗</b> non conforme · <b>!</b> critique (à faire corriger sur place). 📷 = prendre une photo si non conforme. Tout est sauvegardé automatiquement sur ce téléphone.</p>
 </main>
+
+<div class="wrap">
+  <section class="card" id="score-card">
+    <div class="sec-head">
+      <h2>Score de la visite</h2>
+      <span class="count" id="score-progress"></span>
+    </div>
+    <div class="sec-hint">A ≥ 90 · B ≥ 80 · C ≥ 65 · D &lt; 65. Chaque critique : −5 pts et note plafonnée à C.</div>
+    <div class="score-wrap">
+      <div class="score-big"><span id="score-num">—</span><span class="score-sub">/100</span></div>
+      <div class="score-side">
+        <span class="grade" id="grade-chip">—</span>
+        <div class="grade-label" id="grade-label"></div>
+      </div>
+    </div>
+    <div class="crit-warn" id="crit-warn" hidden></div>
+    <ul class="sec-scores" id="sec-scores"></ul>
+  </section>
+</div>
 
 <footer class="actions">
   <div class="wrap">
@@ -378,6 +415,37 @@ const siteInput = document.getElementById("site");
 siteInput.value = store.site || "";
 siteInput.addEventListener("input", () => { store.site = siteInput.value; save(); });
 
+const GRADE_LABELS = {
+  A: "Excellent — standard tenu, continuez comme ça",
+  B: "Bon — quelques points à corriger",
+  C: "Insuffisant — plan d'action nécessaire",
+  D: "Alerte — reprise en main immédiate"
+};
+
+function computeScore() {
+  let evalTot = 0, okTot = 0, critTot = 0, scoreableTot = 0;
+  const perSec = [];
+  SECTIONS.forEach(sec => {
+    if (sec.questions) return;
+    let e = 0, o = 0;
+    sec.items.forEach((it, i) => {
+      const v = store.states[sec.id + "-" + i] || 0;
+      scoreableTot++;
+      if (v) { e++; evalTot++; }
+      if (v === 1) { o++; okTot++; }
+      if (v === 3) critTot++;
+    });
+    perSec.push({ name: sec.title.replace(/^\d+ · /, ""), pct: e ? Math.round(o / e * 100) : null, e: e, o: o });
+  });
+  let score = null, grade = null;
+  if (evalTot > 0) {
+    score = Math.max(0, Math.round(okTot / evalTot * 100 - critTot * 5));
+    grade = score >= 90 ? "A" : score >= 80 ? "B" : score >= 65 ? "C" : "D";
+    if (critTot > 0 && (grade === "A" || grade === "B")) grade = "C";
+  }
+  return { score: score, grade: grade, evalTot: evalTot, scoreableTot: scoreableTot, critTot: critTot, perSec: perSec };
+}
+
 function paint() {
   let total = 0, done = 0, ok = 0, nc = 0, crit = 0;
   SECTIONS.forEach(sec => {
@@ -405,6 +473,49 @@ function paint() {
   document.getElementById("s-nc").textContent = nc + " non conf.";
   document.getElementById("s-crit").textContent = crit + " critiques";
   document.getElementById("fill").style.width = (total ? Math.round(done / total * 100) : 0) + "%";
+
+  const sc = computeScore();
+  document.getElementById("score-progress").textContent = sc.evalTot + "/" + sc.scoreableTot + " points évalués";
+  const numEl = document.getElementById("score-num");
+  const chip = document.getElementById("grade-chip");
+  const lbl = document.getElementById("grade-label");
+  if (sc.score === null) {
+    numEl.textContent = "—";
+    chip.textContent = "—";
+    chip.className = "grade";
+    lbl.textContent = "Coche des points pour calculer le score.";
+  } else {
+    numEl.textContent = sc.score;
+    chip.textContent = sc.grade;
+    chip.className = "grade g-" + sc.grade.toLowerCase();
+    lbl.textContent = GRADE_LABELS[sc.grade] + (sc.evalTot < sc.scoreableTot ? " (provisoire)" : "");
+  }
+  const warn = document.getElementById("crit-warn");
+  if (sc.critTot > 0) {
+    warn.hidden = false;
+    warn.textContent = sc.critTot + " point(s) critique(s) : −5 pts chacun, note plafonnée à C tant que ce n'est pas corrigé.";
+  } else {
+    warn.hidden = true;
+  }
+  const list = document.getElementById("sec-scores");
+  list.innerHTML = "";
+  sc.perSec.forEach(s => {
+    const li = document.createElement("li");
+    const name = document.createElement("span"); name.className = "sname"; name.textContent = s.name;
+    const bar = document.createElement("span"); bar.className = "sbar";
+    const fill = document.createElement("span"); fill.className = "sfill";
+    const val = document.createElement("span"); val.className = "sval";
+    if (s.pct === null) {
+      val.textContent = "—";
+    } else {
+      fill.style.width = s.pct + "%";
+      fill.style.background = s.pct >= 90 ? "var(--ok)" : s.pct >= 65 ? "var(--nc)" : "var(--crit)";
+      val.textContent = s.pct + " %";
+    }
+    bar.appendChild(fill);
+    li.appendChild(name); li.appendChild(bar); li.appendChild(val);
+    list.appendChild(li);
+  });
 }
 paint();
 
@@ -428,6 +539,12 @@ document.getElementById("copy").addEventListener("click", () => {
   });
   lines.push("Avancement : " + done + "/" + total + " points");
   lines.push("✅ " + ok + " conformes · ❌ " + nc + " non conformes · 🔴 " + crit + " critiques");
+  const sc = computeScore();
+  if (sc.score !== null) {
+    lines.push("");
+    lines.push("🏆 SCORE : " + sc.score + "/100 — Note " + sc.grade + " (" + GRADE_LABELS[sc.grade] + ")" + (sc.evalTot < sc.scoreableTot ? " — provisoire" : ""));
+    lines.push("Par poste : " + sc.perSec.filter(s => s.pct !== null).map(s => s.name + " " + s.pct + " %").join(" · "));
+  }
   if (critL.length) { lines.push(""); lines.push("🔴 CRITIQUES (corrigés sur place ou à corriger immédiatement) :"); lines.push(...critL); }
   if (ncL.length) { lines.push(""); lines.push("❌ NON CONFORMES :"); lines.push(...ncL); }
   const notes = SECTIONS.filter(s => (store.notes[s.id] || "").trim());
