@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Contrôle Cuisine — Koulway</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍳</text></svg>">
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f2f4f3;
+    --card: #ffffff;
+    --ink: #1e2528;
+    --muted: #5c6a6e;
+    --line: #dde3e2;
+    --accent: #0e6b63;
+    --accent-soft: #e3efed;
+    --ok: #1f8a4c;
+    --ok-soft: #e4f2e9;
+    --nc: #d9822b;
+    --nc-soft: #f9eedd;
+    --crit: #c6362e;
+    --crit-soft: #f9e5e3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #171c1e;
+      --card: #20272a;
+      --ink: #e8ecec;
+      --muted: #9aa8ab;
+      --line: #333d40;
+      --accent: #4db6ab;
+      --accent-soft: #1d3331;
+      --ok: #4cc07a;
+      --ok-soft: #1e3327;
+      --nc: #e59a4d;
+      --nc-soft: #3a2d1c;
+      --crit: #e26058;
+      --crit-soft: #3b211f;
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #f2f4f3; --card: #ffffff; --ink: #1e2528; --muted: #5c6a6e;
+    --line: #dde3e2; --accent: #0e6b63; --accent-soft: #e3efed;
+    --ok: #1f8a4c; --ok-soft: #e4f2e9; --nc: #d9822b; --nc-soft: #f9eedd;
+    --crit: #c6362e; --crit-soft: #f9e5e3;
+  }
+  :root[data-theme="dark"] {
+    --paper: #171c1e; --card: #20272a; --ink: #e8ecec; --muted: #9aa8ab;
+    --line: #333d40; --accent: #4db6ab; --accent-soft: #1d3331;
+    --ok: #4cc07a; --ok-soft: #1e3327; --nc: #e59a4d; --nc-soft: #3a2d1c;
+    --crit: #e26058; --crit-soft: #3b211f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+    padding-bottom: 90px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 12px; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 0 8px;
+  }
+  .brand {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  h1 { font-size: 20px; margin: 2px 0 8px; letter-spacing: -0.01em; text-wrap: balance; }
+  #site {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line);
+    border-radius: 8px; background: var(--card); color: var(--ink);
+    font: inherit; margin-bottom: 8px;
+  }
+  #site:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .stats {
+    display: flex; gap: 6px; font-variant-numeric: tabular-nums;
+    font-size: 12.5px; flex-wrap: wrap;
+  }
+  .stats span {
+    padding: 3px 8px; border-radius: 999px; background: var(--card);
+    border: 1px solid var(--line); white-space: nowrap;
+  }
+  .stats .s-ok { color: var(--ok); border-color: var(--ok); }
+  .stats .s-nc { color: var(--nc); border-color: var(--nc); }
+  .stats .s-crit { color: var(--crit); border-color: var(--crit); font-weight: 700; }
+  .bar { height: 4px; background: var(--line); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+  #fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.2s; }
+  @media (prefers-reduced-motion: reduce) { #fill { transition: none; } }
+
+  section.card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; margin: 14px 0; overflow: hidden;
+  }
+  .sec-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+    padding: 12px 14px 4px;
+  }
+  .sec-head h2 { font-size: 16px; margin: 0; }
+  .sec-head .count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .sec-hint { padding: 0 14px 6px; font-size: 12.5px; color: var(--muted); }
+
+  ul.items { list-style: none; margin: 0; padding: 0; }
+  li.item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-top: 1px solid var(--line);
+  }
+  li.item.st-1 { background: var(--ok-soft); }
+  li.item.st-2 { background: var(--nc-soft); }
+  li.item.st-3 { background: var(--crit-soft); }
+  .lbl { flex: 1; min-width: 0; }
+  .lbl .t { font-size: 14.5px; font-weight: 500; }
+  .lbl .h { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+  .btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .btns button {
+    width: 40px; height: 40px; border-radius: 9px; border: 1.5px solid var(--line);
+    background: var(--card); color: var(--muted); font-size: 16px; font-weight: 700;
+    cursor: pointer; padding: 0;
+  }
+  .btns button.on-ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .btns button.on-nc { background: var(--nc); border-color: var(--nc); color: #fff; }
+  .btns button.on-crit { background: var(--crit); border-color: var(--crit); color: #fff; }
+
+  textarea.notes {
+    width: 100%; border: none; border-top: 1px solid var(--line);
+    background: transparent; color: var(--ink); font: inherit; font-size: 14px;
+    padding: 10px 14px; min-height: 44px; resize: vertical; display: block;
+  }
+  textarea.notes::placeholder { color: var(--muted); }
+
+  footer.actions {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+    background: var(--paper); border-top: 1px solid var(--line);
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  }
+  .actions .wrap { display: flex; gap: 10px; padding: 0; }
+  .actions button {
+    flex: 1; padding: 12px; border-radius: 10px; font: inherit; font-weight: 700;
+    cursor: pointer; border: 1.5px solid var(--accent);
+  }
+  #copy { background: var(--accent); color: #fff; }
+  #reset { background: transparent; color: var(--crit); border-color: var(--line); flex: 0 0 auto; padding: 12px 16px; font-weight: 500; }
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper); padding: 8px 16px;
+    border-radius: 999px; font-size: 13.5px; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s; z-index: 20; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+  .legend { font-size: 12.5px; color: var(--muted); margin: 10px 0 2px; }
+  .legend b { font-weight: 700; }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">Koulway · Contrôle cuisine</div>
+    <h1>Checklist de visite</h1>
+    <input id="site" placeholder="Site + date (ex. Avenue des FAR — 20/07)">
+    <div class="stats">
+      <span id="s-done">0/0 contrôlés</span>
+      <span class="s-ok" id="s-ok">0 conformes</span>
+      <span class="s-nc" id="s-nc">0 non conf.</span>
+      <span class="s-crit" id="s-crit">0 critiques</span>
+    </div>
+    <div class="bar"><div id="fill"></div></div>
+  </div>
+</header>
+
+<main class="wrap" id="app">
+  <p class="legend">Pour chaque point : <b>✓</b> conforme · <b>✗</b> non conforme · <b>!</b> critique (à faire corriger sur place). 📷 = prendre une photo si non conforme. Tout est sauvegardé automatiquement sur ce téléphone.</p>
+</main>
+
+<footer class="actions">
+  <div class="wrap">
+    <button id="copy">Copier le bilan</button>
+    <button id="reset">Effacer</button>
+  </div>
+</footer>
+<div class="toast" id="toast">Bilan copié</div>
+
+<script>
+const SECTIONS = [
+  {
+    id: "arr", title: "1 · Arrivée & salle", hint: "5 minutes, avant d'entrer en cuisine : regarde ce que voit un client.",
+    items: [
+      { t: "Extérieur propre : façade, vitres, entrée", p: 1 },
+      { t: "Salle propre : tables, sols, chaises", p: 1 },
+      { t: "Comptoir / caisse propre et rangé" },
+      { t: "Première impression de l'équipe : présentable, accueillante", h: "ta toute première impression, avant qu'ils se réajustent" }
+    ]
+  },
+  {
+    id: "froid", title: "2 · Froid : frigos & congélateur", hint: "Vas-y directement en entrant en cuisine : c'est là que les problèmes se cachent, et les températures se vérifient tout de suite.",
+    items: [
+      { t: "Frigos entre 0 et 4 °C", h: "lis le thermomètre de chaque frigo, note les valeurs", p: 1 },
+      { t: "Congélateur à −18 °C" },
+      { t: "Relevés de température tenus (feuille ou cahier)", h: "demande : « vous notez les températures où ? »" },
+      { t: "Aliments filmés ou couverts, jamais à nu", p: 1 },
+      { t: "Tout est étiqueté : produit + date (production ou ouverture)", h: "boîte sans date = impossible de savoir depuis quand", p: 1 },
+      { t: "Cru en bas, cuit / prêt-à-manger en haut", h: "le cru ne doit jamais goutter sur le cuit", p: 1 },
+      { t: "Décongélation au frigo, jamais à l'air ambiant ou dans l'évier", p: 1 },
+      { t: "Frigos propres : joints, étagères, pas de jus au fond", p: 1 }
+    ]
+  },
+  {
+    id: "sec", title: "3 · Stockage sec & réception", hint: "En général juste à côté du froid — enchaîne sans revenir sur tes pas.",
+    items: [
+      { t: "Rien posé directement au sol", h: "tout sur étagère ou palette, ~15 cm du sol", p: 1 },
+      { t: "Produits entamés refermés / dans boîtes fermées", p: 1 },
+      { t: "Rotation FIFO : le plus ancien devant", h: "regarde les dates : le plus vieux doit partir en premier" },
+      { t: "Aucun produit périmé (vérifier 5–10 DLC au hasard)", p: 1 },
+      { t: "Zone propre, pas de traces de nuisibles", h: "déjections, sachets rongés, insectes", p: 1 }
+    ]
+  },
+  {
+    id: "prep", title: "4 · Préparation & cuisson", hint: "Reviens vers la ligne et observe-les travailler en conditions réelles.",
+    items: [
+      { t: "Fiches techniques / recettes présentes au poste", h: "s'il n'y en a pas : chacun fait à sa façon" },
+      { t: "Planches et couteaux séparés cru / cuit ou lavés entre les deux" },
+      { t: "Produits en cours d'utilisation couverts et datés", p: 1 },
+      { t: "Cuisson à cœur du poulet / viande hachée (74 °C ou bien cuit)", h: "demande comment ils vérifient" },
+      { t: "Maintien au chaud à +63 °C minimum", h: "rien qui traîne tiède à température ambiante" },
+      { t: "Goût et aspect conformes au standard Koulway", h: "goûte 1 ou 2 produits phares" },
+      { t: "Sauces maison : préparation datée, conservation au froid" },
+      { t: "Plan de travail dégagé et nettoyé entre les tâches" }
+    ]
+  },
+  {
+    id: "frit", title: "5 · Friture & huiles",
+    items: [
+      { t: "Huile claire, pas noire ni mousseuse, odeur normale", p: 1 },
+      { t: "Fréquence de changement connue et suivie", h: "demande : « elle a été changée quand ? comment vous décidez ? »" },
+      { t: "Huile filtrée régulièrement, bac propre" },
+      { t: "Frites / produits frits tenus au chaud, pas refrits plusieurs fois" }
+    ]
+  },
+  {
+    id: "qte", title: "6 · Quantités & portions", hint: "Même zone, même moment : regarde-les faire pendant le service. Directement lié à la rentabilité : portions non pesées = marge qui fuit.",
+    items: [
+      { t: "Grammages définis et connus de l'équipe", h: "demande : « il y a combien de grammes de viande là-dedans ? »" },
+      { t: "Balance / dosettes / cuillères calibrées utilisées réellement", h: "regarde-les faire un sandwich sans rien dire", p: 1 },
+      { t: "Portions constantes d'un employé à l'autre", h: "compare deux préparations du même produit" },
+      { t: "Pertes et invendus notés quelque part", h: "demande : « ce qui est jeté, vous le notez où ? »" },
+      { t: "Pas de surproduction en avance qui finit jetée" }
+    ]
+  },
+  {
+    id: "net", title: "7 · Nettoyage, plonge & poubelles", hint: "En fin de parcours : la plonge puis la zone poubelles, vers la sortie arrière.",
+    items: [
+      { t: "Plan de nettoyage affiché (qui, quoi, quand)", h: "s'il n'existe pas, c'est un chantier prioritaire" },
+      { t: "Sols et murs propres, y compris sous et derrière le matériel", p: 1 },
+      { t: "Hotte et filtres dégraissés", p: 1 },
+      { t: "Plonge organisée : sale et propre séparés" },
+      { t: "Produits d'entretien étiquetés, stockés loin des aliments", h: "jamais de produit chimique déconditionné en bouteille d'eau", p: 1 },
+      { t: "Poubelles avec couvercle, sac fermé, sorties régulièrement", p: 1 },
+      { t: "Zone poubelles extérieure propre" },
+      { t: "Matériel en bon état : pas de plastique cassé, planches rayées noircies", p: 1 }
+    ]
+  },
+  {
+    id: "hyg", title: "8 · Hygiène du personnel", hint: "Transversal : observe discrètement pendant toute la visite, et coche cette section à la fin du parcours.",
+    items: [
+      { t: "Tenue de travail propre (tablier, t-shirt)", h: "taches anciennes = pas lavée régulièrement", p: 1 },
+      { t: "Cheveux couverts (charlotte, casquette, filet)" },
+      { t: "Lavage des mains observé pendant la visite", h: "après poubelle, après cru, après téléphone…" },
+      { t: "Lave-mains équipé : savon + essuie-mains jetable", h: "un lave-mains sans savon = personne ne se lave les mains", p: 1 },
+      { t: "Pas de bijoux, montres, bagues en production" },
+      { t: "Pas de téléphone manipulé en zone de production" },
+      { t: "Blessures couvertes (pansement + gant)" }
+    ]
+  },
+  {
+    id: "org", title: "9 · Organisation & traçabilité", hint: "Les réponses arrivent au fil de la visite — coche à la fin.",
+    items: [
+      { t: "Checklist ouverture / fermeture existante et utilisée" },
+      { t: "Répartition claire des postes (qui fait quoi)" },
+      { t: "Étiquettes des produits reçus conservées (traçabilité fournisseur)" },
+      { t: "Procédure connue en cas de rupture de produit", h: "« comment vous faites quand il n'y a plus de X ? »" },
+      { t: "Commandes / inventaire : méthode claire, pas au feeling" },
+      { t: "Communication avec le manager : consignes écrites ou orales ?" }
+    ]
+  },
+  {
+    id: "chef", title: "10 · Entretien chef d'équipe", hint: "En fin de visite, au calme. Coche quand la question est posée, note les réponses en bas.", questions: true,
+    items: [
+      { t: "« Raconte-moi une journée type : qui fait quoi, de l'ouverture à la fermeture ? »" },
+      { t: "« Comment vous savez quelle quantité mettre dans chaque produit ? »" },
+      { t: "« Comment vous faites quand un produit manque ? »" },
+      { t: "« Pourquoi c'est organisé comme ça ici ? » (sur un point observé)", h: "écoute la logique : parfois ils ont une bonne raison" },
+      { t: "« Qui nettoie quoi, et quand ? »" },
+      { t: "« Depuis le départ du frère Abdelmajid, qu'est-ce qui a changé ? »" },
+      { t: "« Qu'est-ce qui vous manque pour bien travailler ? »", h: "termine positif : ils doivent sentir que le contrôle les aide" }
+    ]
+  }
+];
+
+const KEY = "koulway-audit-v1";
+let store = { site: "", states: {}, notes: {} };
+try { store = Object.assign(store, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+const save = () => localStorage.setItem(KEY, JSON.stringify(store));
+
+const app = document.getElementById("app");
+
+SECTIONS.forEach(sec => {
+  const card = document.createElement("section");
+  card.className = "card";
+  const head = document.createElement("div");
+  head.className = "sec-head";
+  head.innerHTML = '<h2></h2><span class="count" id="c-' + sec.id + '"></span>';
+  head.querySelector("h2").textContent = sec.title;
+  card.appendChild(head);
+  if (sec.hint) {
+    const h = document.createElement("div");
+    h.className = "sec-hint";
+    h.textContent = sec.hint;
+    card.appendChild(h);
+  }
+  const ul = document.createElement("ul");
+  ul.className = "items";
+  sec.items.forEach((it, i) => {
+    const id = sec.id + "-" + i;
+    const li = document.createElement("li");
+    li.className = "item";
+    li.id = "row-" + id;
+    const lbl = document.createElement("div");
+    lbl.className = "lbl";
+    const t = document.createElement("div");
+    t.className = "t";
+    t.textContent = it.t + (it.p ? " 📷" : "");
+    lbl.appendChild(t);
+    if (it.h) {
+      const h = document.createElement("div");
+      h.className = "h";
+      h.textContent = it.h;
+      lbl.appendChild(h);
+    }
+    li.appendChild(lbl);
+    const btns = document.createElement("div");
+    btns.className = "btns";
+    const defs = sec.questions
+      ? [[1, "✓", "on-ok", "Question posée"]]
+      : [[1, "✓", "on-ok", "Conforme"], [2, "✗", "on-nc", "Non conforme"], [3, "!", "on-crit", "Critique"]];
+    defs.forEach(d => {
+      const b = document.createElement("button");
+      b.textContent = d[1];
+      b.setAttribute("aria-label", d[3]);
+      b.dataset.v = d[0];
+      b.dataset.cls = d[2];
+      b.addEventListener("click", () => {
+        store.states[id] = (store.states[id] === d[0]) ? 0 : d[0];
+        save(); paint();
+      });
+      btns.appendChild(b);
+    });
+    li.appendChild(btns);
+    ul.appendChild(li);
+  });
+  card.appendChild(ul);
+  const ta = document.createElement("textarea");
+  ta.className = "notes";
+  ta.placeholder = "Notes " + (sec.questions ? "— réponses du chef d'équipe…" : "— détails, quantités relevées, températures…");
+  ta.value = store.notes[sec.id] || "";
+  ta.addEventListener("input", () => { store.notes[sec.id] = ta.value; save(); });
+  card.appendChild(ta);
+  app.appendChild(card);
+});
+
+const siteInput = document.getElementById("site");
+siteInput.value = store.site || "";
+siteInput.addEventListener("input", () => { store.site = siteInput.value; save(); });
+
+function paint() {
+  let total = 0, done = 0, ok = 0, nc = 0, crit = 0;
+  SECTIONS.forEach(sec => {
+    let sdone = 0;
+    sec.items.forEach((it, i) => {
+      const id = sec.id + "-" + i;
+      const v = store.states[id] || 0;
+      const row = document.getElementById("row-" + id);
+      row.className = "item" + (v ? " st-" + v : "");
+      row.querySelectorAll(".btns button").forEach(b => {
+        b.className = (Number(b.dataset.v) === v) ? b.dataset.cls : "";
+      });
+      total++;
+      if (v) { done++; sdone++; }
+      if (!sec.questions) {
+        if (v === 1) ok++;
+        if (v === 2) nc++;
+        if (v === 3) crit++;
+      }
+    });
+    document.getElementById("c-" + sec.id).textContent = sdone + "/" + sec.items.length;
+  });
+  document.getElementById("s-done").textContent = done + "/" + total + " contrôlés";
+  document.getElementById("s-ok").textContent = ok + " conformes";
+  document.getElementById("s-nc").textContent = nc + " non conf.";
+  document.getElementById("s-crit").textContent = crit + " critiques";
+  document.getElementById("fill").style.width = (total ? Math.round(done / total * 100) : 0) + "%";
+}
+paint();
+
+document.getElementById("copy").addEventListener("click", () => {
+  const lines = [];
+  lines.push("CONTRÔLE CUISINE KOULWAY");
+  lines.push((store.site || "Site non précisé") + " — " + new Date().toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }));
+  let ok = 0, nc = 0, crit = 0, done = 0, total = 0;
+  const ncL = [], critL = [];
+  SECTIONS.forEach(sec => {
+    sec.items.forEach((it, i) => {
+      const v = store.states[sec.id + "-" + i] || 0;
+      total++;
+      if (v) done++;
+      if (!sec.questions) {
+        if (v === 1) ok++;
+        if (v === 2) { nc++; ncL.push("– [" + sec.title.replace(/^\d+ · /, "") + "] " + it.t.replace(" 📷", "")); }
+        if (v === 3) { crit++; critL.push("– [" + sec.title.replace(/^\d+ · /, "") + "] " + it.t.replace(" 📷", "")); }
+      }
+    });
+  });
+  lines.push("Avancement : " + done + "/" + total + " points");
+  lines.push("✅ " + ok + " conformes · ❌ " + nc + " non conformes · 🔴 " + crit + " critiques");
+  if (critL.length) { lines.push(""); lines.push("🔴 CRITIQUES (corrigés sur place ou à corriger immédiatement) :"); lines.push(...critL); }
+  if (ncL.length) { lines.push(""); lines.push("❌ NON CONFORMES :"); lines.push(...ncL); }
+  const notes = SECTIONS.filter(s => (store.notes[s.id] || "").trim());
+  if (notes.length) {
+    lines.push(""); lines.push("NOTES :");
+    notes.forEach(s => { lines.push("[" + s.title.replace(/^\d+ · /, "") + "] " + store.notes[s.id].trim()); });
+  }
+  const text = lines.join("\n");
+  const toast = () => {
+    const el = document.getElementById("toast");
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 1800);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(toast, () => fallback(text, toast));
+  } else { fallback(text, toast); }
+  function fallback(txt, cb) {
+    const ta = document.createElement("textarea");
+    ta.value = txt;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+    cb();
+  }
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+  if (confirm("Effacer tous les résultats de ce contrôle ?")) {
+    store = { site: "", states: {}, notes: {} };
+    save();
+    siteInput.value = "";
+    document.querySelectorAll("textarea.notes").forEach(t => t.value = "");
+    paint();
+  }
+});
+</script>
+</body>
+</html>
