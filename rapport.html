@@ -130,6 +130,27 @@
   .obs { border-left: 3px solid var(--accent); padding-left: 12px; margin: 10px 0 4px; }
   .obs ul { list-style: none; margin: 2px 0 0; padding: 0; }
   .obs li { padding: 4px 0; font-size: 14.5px; }
+  .obs-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  button.mini {
+    font: inherit; font-size: 12.5px; font-weight: 700; padding: 5px 12px; border-radius: 999px;
+    border: 1px solid var(--accent); color: var(--accent); background: transparent;
+    cursor: pointer; white-space: nowrap;
+  }
+  button.mini.solid { background: var(--accent); color: #fff; }
+  textarea.edit-ta {
+    width: 100%; min-height: 100px; font: inherit; font-size: 14.5px; padding: 9px 10px;
+    border: 1.5px solid var(--accent); border-radius: 8px; background: var(--card); color: var(--ink);
+    margin: 8px 0 2px; resize: vertical;
+  }
+  textarea.edit-ta:focus, .add-row select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .edit-actions { display: flex; gap: 8px; margin: 6px 0 4px; }
+  .add-row { display: flex; gap: 8px; padding: 6px 16px 16px; align-items: center; flex-wrap: wrap; }
+  .add-row select {
+    flex: 1; min-width: 150px; font: inherit; font-size: 13.5px; padding: 9px 8px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  }
+  .hint { padding: 0 16px 8px; font-size: 12px; color: var(--muted); margin: 0; }
+  .edit-host { padding: 0 16px; }
 
   /* ── plan d'action ── */
   .acts { display: flex; flex-direction: column; gap: 9px; padding: 8px 16px 14px; }
@@ -272,6 +293,56 @@ if (!data || !data.states) {
   render(data);
 }
 
+// Ré-encode les données dans l'URL après une modification, sans recharger la page.
+function reencode() {
+  history.replaceState(null, "", "#" + btoa(unescape(encodeURIComponent(JSON.stringify(data)))));
+  setWa();
+}
+
+function rerender() {
+  const y = window.scrollY;
+  render(data);
+  window.scrollTo(0, y);
+}
+
+// Transforme un bloc d'observations en éditeur (une observation par ligne).
+function editorFor(secId, host) {
+  host.textContent = "";
+  const ta = el("textarea", "edit-ta");
+  ta.value = (data.notes && data.notes[secId]) || "";
+  ta.placeholder = "Une observation par ligne…";
+  host.appendChild(ta);
+  const row = el("div", "edit-actions no-print");
+  const save = el("button", "mini solid", "Enregistrer");
+  save.addEventListener("click", () => {
+    if (!data.notes) data.notes = {};
+    if (ta.value.trim()) data.notes[secId] = ta.value.trim();
+    else delete data.notes[secId];
+    reencode();
+    rerender();
+  });
+  const cancel = el("button", "mini", "Annuler");
+  cancel.addEventListener("click", rerender);
+  row.appendChild(save);
+  row.appendChild(cancel);
+  host.appendChild(row);
+  ta.focus();
+}
+
+function obsBlock(title, secId) {
+  const blk = el("div", "obs");
+  const head = el("div", "obs-head");
+  head.appendChild(el("div", "gname", title));
+  const edit = el("button", "mini no-print", "✏️ Modifier");
+  edit.addEventListener("click", () => editorFor(secId, blk));
+  head.appendChild(edit);
+  blk.appendChild(head);
+  const ul = el("ul");
+  tidy(data.notes && data.notes[secId]).forEach(t => ul.appendChild(el("li", null, "– " + t)));
+  blk.appendChild(ul);
+  return blk;
+}
+
 function render(d) {
   const states = d.states || {}, notes = d.notes || {};
   let evalTot = 0, okTot = 0, ncTot = 0, critTot = 0, scoreableTot = 0;
@@ -297,6 +368,7 @@ function render(d) {
   }
 
   const doc = document.getElementById("doc");
+  doc.textContent = "";
   doc.hidden = false;
 
   // ── Carte de tête : titre + score ──
@@ -408,24 +480,33 @@ function render(d) {
   }
   doc.appendChild(nc);
 
-  // ── 5. Observations du contrôleur ──
-  const hasNotes = perSec.some(s => tidy(notes[s.sec.id]).length);
-  if (hasNotes) {
-    const ob = card("5 · Observations du contrôleur");
-    const op = el("div", "pad");
-    perSec.forEach(s => {
-      const items = tidy(notes[s.sec.id]);
-      if (!items.length) return;
-      const blk = el("div", "obs");
-      blk.appendChild(el("div", "gname", s.sec.title));
-      const ul = el("ul");
-      items.forEach(t => ul.appendChild(el("li", null, "– " + t)));
-      blk.appendChild(ul);
-      op.appendChild(blk);
-    });
-    ob.appendChild(op);
-    doc.appendChild(ob);
-  }
+  // ── 5. Observations du contrôleur (éditables) ──
+  const ob = card("5 · Observations du contrôleur");
+  const op = el("div", "pad");
+  let anyNotes = false;
+  perSec.forEach(s => {
+    if (!tidy(notes[s.sec.id]).length) return;
+    anyNotes = true;
+    op.appendChild(obsBlock(s.sec.title, s.sec.id));
+  });
+  if (!anyNotes) op.appendChild(el("p", null, "Aucune observation pour l'instant."));
+  ob.appendChild(op);
+  const addHost = el("div", "edit-host");
+  ob.appendChild(addHost);
+  ob.appendChild(el("p", "hint no-print", "✏️ Le lien du rapport se met à jour tout seul après chaque modification — recopie-le une fois tes corrections faites."));
+  const addRow = el("div", "add-row no-print");
+  const sel = el("select");
+  perSec.forEach(s => {
+    const o = el("option", null, s.sec.title);
+    o.value = s.sec.id;
+    sel.appendChild(o);
+  });
+  const addBtn = el("button", "mini solid", "＋ Ajouter / corriger");
+  addBtn.addEventListener("click", () => editorFor(sel.value, addHost));
+  addRow.appendChild(sel);
+  addRow.appendChild(addBtn);
+  ob.appendChild(addRow);
+  doc.appendChild(ob);
 
   // ── 6. Entretien ──
   const chef = SECTIONS.find(s => s.questions);
@@ -437,12 +518,14 @@ function render(d) {
     "L'entretien n'a pas pu être mené lors de cette visite."));
   const chefNotes = tidy(notes[chef.id]);
   if (chefNotes.length) {
-    const blk = el("div", "obs");
-    blk.appendChild(el("div", "gname", "Éléments recueillis"));
-    const ul = el("ul");
-    chefNotes.forEach(t => ul.appendChild(el("li", null, "– " + t)));
-    blk.appendChild(ul);
+    const blk = obsBlock("Éléments recueillis", chef.id);
     ep.appendChild(blk);
+  } else {
+    const host = el("div");
+    const btn = el("button", "mini no-print", "＋ Ajouter un commentaire");
+    btn.addEventListener("click", () => editorFor(chef.id, host));
+    ep.appendChild(btn);
+    ep.appendChild(host);
   }
   en.appendChild(ep);
   doc.appendChild(en);
@@ -497,8 +580,11 @@ document.getElementById("btn-copy").addEventListener("click", function () {
     setTimeout(() => { b.textContent = "Copier le lien"; }, 1800);
   });
 });
-document.getElementById("btn-wa").href = "https://wa.me/?text=" +
-  encodeURIComponent("Rapport de contrôle cuisine" + (data && data.site ? " — " + data.site : "") + " :\n" + location.href);
+function setWa() {
+  document.getElementById("btn-wa").href = "https://wa.me/?text=" +
+    encodeURIComponent("Rapport de contrôle cuisine" + (data && data.site ? " — " + data.site : "") + " :\n" + location.href);
+}
+setWa();
 </script>
 </body>
 </html>
