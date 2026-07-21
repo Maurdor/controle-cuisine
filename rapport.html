@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Rapport de contrôle — Koulway</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
+<style>
+  :root {
+    --paper: #f2f4f3; --card: #ffffff; --ink: #1e2528; --muted: #5c6a6e;
+    --line: #dde3e2; --accent: #0e6b63; --accent-soft: #e3efed;
+    --ok: #1f8a4c; --ok-soft: #e4f2e9; --nc: #d9822b; --nc-soft: #f9eedd;
+    --crit: #c6362e; --crit-soft: #f9e5e3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #171c1e; --card: #20272a; --ink: #e8ecec; --muted: #9aa8ab;
+      --line: #333d40; --accent: #4db6ab; --accent-soft: #1d3331;
+      --ok: #4cc07a; --ok-soft: #1e3327; --nc: #e59a4d; --nc-soft: #3a2d1c;
+      --crit: #e26058; --crit-soft: #3b211f;
+    }
+  }
+  @media print {
+    :root {
+      --paper: #ffffff; --card: #ffffff; --ink: #111517; --muted: #4a5558;
+      --line: #c9d1d0; --accent: #0e6b63; --accent-soft: #eef4f3;
+      --ok: #1f8a4c; --ok-soft: #eef6f1; --nc: #b06a1e; --nc-soft: #faf2e5;
+      --crit: #c6362e; --crit-soft: #faeeec;
+    }
+    .no-print { display: none !important; }
+    body { padding: 0; }
+    .sheet { border: none; box-shadow: none; padding: 0; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14.5px; line-height: 1.5; padding: 16px 12px 40px;
+  }
+  .sheet {
+    max-width: 780px; margin: 0 auto; background: var(--card);
+    border: 1px solid var(--line); border-radius: 12px; padding: 28px 26px;
+  }
+  .toolbar {
+    max-width: 780px; margin: 0 auto 12px; display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .toolbar button, .toolbar a {
+    flex: 1; min-width: 110px; text-align: center; padding: 11px 10px; border-radius: 10px;
+    font: inherit; font-weight: 700; cursor: pointer; text-decoration: none;
+    border: 1.5px solid var(--accent); background: var(--accent); color: #fff;
+  }
+  .toolbar .ghost { background: transparent; color: var(--accent); }
+  .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  h1 { font-size: 22px; margin: 4px 0 2px; letter-spacing: -0.01em; text-wrap: balance; }
+  .meta { color: var(--muted); font-size: 13.5px; margin-bottom: 18px; }
+  .scorebox {
+    display: flex; align-items: center; gap: 18px; border: 1px solid var(--line);
+    border-radius: 10px; padding: 14px 16px; margin: 14px 0 22px; background: var(--accent-soft);
+  }
+  .scorebox .num { font-size: 40px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .scorebox .num small { font-size: 15px; color: var(--muted); font-weight: 600; }
+  .grade {
+    display: inline-block; padding: 2px 13px; border-radius: 999px;
+    font-weight: 800; font-size: 17px; color: #fff; background: var(--muted);
+  }
+  .g-a { background: var(--ok); } .g-b { background: var(--accent); }
+  .g-c { background: var(--nc); } .g-d { background: var(--crit); }
+  .glabel { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  h2 {
+    font-size: 15.5px; margin: 26px 0 8px; padding-bottom: 5px;
+    border-bottom: 2px solid var(--accent);
+  }
+  p { margin: 8px 0; }
+  ul { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 8px 0; }
+  th, td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: var(--accent-soft); font-weight: 700; }
+  td.pct { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tag { font-weight: 700; }
+  .tag.crit { color: var(--crit); }
+  .tag.nc { color: var(--nc); }
+  .tag.ok { color: var(--ok); }
+  .crit-block { background: var(--crit-soft); border: 1px solid var(--crit); border-radius: 8px; padding: 10px 14px; margin: 8px 0; }
+  .notes-block { background: var(--paper); border-left: 3px solid var(--accent); padding: 6px 12px; margin: 6px 0 12px; }
+  .notes-block .who { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .sig { display: flex; gap: 24px; margin-top: 34px; }
+  .sig div { flex: 1; }
+  .sig .line { border-top: 1px solid var(--ink); margin-top: 46px; padding-top: 5px; font-size: 12.5px; color: var(--muted); }
+  .gen { margin-top: 26px; font-size: 11.5px; color: var(--muted); }
+  #err { max-width: 780px; margin: 40px auto; text-align: center; color: var(--muted); }
+  .overflow { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="toolbar no-print">
+  <button id="btn-print">Imprimer / PDF</button>
+  <button id="btn-copy" class="ghost">Copier le lien</button>
+  <a id="btn-wa" class="ghost" target="_blank" rel="noopener">WhatsApp</a>
+</div>
+<div id="err" hidden>
+  <p>Aucune donnée de contrôle dans ce lien.</p>
+  <p>Ouvre ce rapport depuis le bouton <b>📄 Rapport</b> de la <a href="./">checklist</a>.</p>
+</div>
+<article class="sheet" id="doc" hidden></article>
+
+<script>
+const SECTIONS = [
+  { id: "arr", title: "Arrivée & salle",
+    items: ["Extérieur propre : façade, vitres, entrée", "Salle propre : tables, sols, chaises", "Comptoir / caisse propre et rangé", "Première impression de l'équipe : présentable, accueillante"] },
+  { id: "froid", title: "Froid : frigos & congélateur",
+    items: ["Frigos entre 0 et 4 °C", "Congélateur à −18 °C", "Relevés de température tenus (feuille ou cahier)", "Aliments filmés ou couverts, jamais à nu", "Tout est étiqueté : produit + date (production ou ouverture)", "Cru en bas, cuit / prêt-à-manger en haut", "Décongélation au frigo, jamais à l'air ambiant ou dans l'évier", "Frigos propres : joints, étagères, pas de jus au fond"] },
+  { id: "sec", title: "Stockage sec & réception",
+    items: ["Rien posé directement au sol", "Produits entamés refermés / dans boîtes fermées", "Rotation FIFO : le plus ancien devant", "Aucun produit périmé (vérifier 5–10 DLC au hasard)", "Zone propre, pas de traces de nuisibles"] },
+  { id: "prep", title: "Préparation & cuisson",
+    items: ["Fiches techniques / recettes présentes au poste", "Planches et couteaux séparés cru / cuit ou lavés entre les deux", "Produits en cours d'utilisation couverts et datés", "Cuisson à cœur du poulet / viande hachée (74 °C ou bien cuit)", "Maintien au chaud à +63 °C minimum", "Goût et aspect conformes au standard Koulway", "Sauces maison : préparation datée, conservation au froid", "Plan de travail dégagé et nettoyé entre les tâches"] },
+  { id: "frit", title: "Friture & huiles",
+    items: ["Huile claire, pas noire ni mousseuse, odeur normale", "Fréquence de changement connue et suivie", "Huile filtrée régulièrement, bac propre", "Frites / produits frits tenus au chaud, pas refrits plusieurs fois"] },
+  { id: "qte", title: "Quantités & portions",
+    items: ["Grammages définis et connus de l'équipe", "Balance / dosettes / cuillères calibrées utilisées réellement", "Portions constantes d'un employé à l'autre", "Pertes et invendus notés quelque part", "Pas de surproduction en avance qui finit jetée"] },
+  { id: "net", title: "Nettoyage, plonge & poubelles",
+    items: ["Plan de nettoyage affiché (qui, quoi, quand)", "Sols et murs propres, y compris sous et derrière le matériel", "Hotte et filtres dégraissés", "Plonge organisée : sale et propre séparés", "Produits d'entretien étiquetés, stockés loin des aliments", "Poubelles avec couvercle, sac fermé, sorties régulièrement", "Zone poubelles extérieure propre", "Matériel en bon état : pas de plastique cassé, planches rayées noircies"] },
+  { id: "hyg", title: "Hygiène du personnel",
+    items: ["Tenue de travail propre (tablier, t-shirt)", "Cheveux couverts (charlotte, casquette, filet)", "Lavage des mains observé pendant la visite", "Lave-mains équipé : savon + essuie-mains jetable", "Pas de bijoux, montres, bagues en production", "Pas de téléphone manipulé en zone de production", "Blessures couvertes (pansement + gant)"] },
+  { id: "org", title: "Organisation & traçabilité",
+    items: ["Checklist ouverture / fermeture existante et utilisée", "Répartition claire des postes (qui fait quoi)", "Étiquettes des produits reçus conservées (traçabilité fournisseur)", "Procédure connue en cas de rupture de produit", "Commandes / inventaire : méthode claire, pas au feeling", "Communication avec le manager : consignes écrites ou orales ?"] },
+  { id: "chef", title: "Entretien chef d'équipe", questions: true,
+    items: ["« Raconte-moi une journée type : qui fait quoi, de l'ouverture à la fermeture ? »", "« Comment vous savez quelle quantité mettre dans chaque produit ? »", "« Comment vous faites quand un produit manque ? »", "« Pourquoi c'est organisé comme ça ici ? » (sur un point observé)", "« Qui nettoie quoi, et quand ? »", "« Depuis le départ du frère Abdelmajid, qu'est-ce qui a changé ? »", "« Qu'est-ce qui vous manque pour bien travailler ? »"] }
+];
+const GRADE_LABELS = {
+  A: "Excellent — standard tenu",
+  B: "Bon — quelques points à corriger",
+  C: "Insuffisant — plan d'action nécessaire",
+  D: "Alerte — reprise en main immédiate"
+};
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+// Nettoie les notes tapées en vrac : une puce par ligne, majuscule, point final.
+function tidy(text) {
+  return (text || "").split(/\n+/).map(s => s.trim()).filter(Boolean).map(s => {
+    s = s.replace(/^[-–•*]\s*/, "");
+    s = s.charAt(0).toUpperCase() + s.slice(1);
+    if (!/[.!?…]$/.test(s)) s += ".";
+    return s;
+  });
+}
+
+let data = null;
+try {
+  const h = location.hash.slice(1);
+  if (h) data = JSON.parse(decodeURIComponent(escape(atob(h))));
+} catch (e) { data = null; }
+
+if (!data || !data.states) {
+  document.getElementById("err").hidden = false;
+} else {
+  render(data);
+}
+
+function render(d) {
+  const states = d.states || {}, notes = d.notes || {};
+  let evalTot = 0, okTot = 0, ncTot = 0, critTot = 0, scoreableTot = 0;
+  const perSec = [], critL = [], ncL = [];
+  SECTIONS.forEach(sec => {
+    if (sec.questions) return;
+    let e = 0, o = 0;
+    sec.items.forEach((label, i) => {
+      const v = states[sec.id + "-" + i] || 0;
+      scoreableTot++;
+      if (v) { e++; evalTot++; }
+      if (v === 1) { o++; okTot++; }
+      if (v === 2) { ncTot++; ncL.push({ sec: sec.title, label: label }); }
+      if (v === 3) { critTot++; critL.push({ sec: sec.title, label: label }); }
+    });
+    perSec.push({ sec: sec, e: e, o: o, pct: e ? Math.round(o / e * 100) : null });
+  });
+  let score = null, grade = null;
+  if (evalTot > 0) {
+    score = Math.max(0, Math.round(okTot / evalTot * 100 - critTot * 5));
+    grade = score >= 90 ? "A" : score >= 80 ? "B" : score >= 65 ? "C" : "D";
+    if (critTot > 0 && (grade === "A" || grade === "B")) grade = "C";
+  }
+
+  const doc = document.getElementById("doc");
+  doc.hidden = false;
+  doc.appendChild(el("div", "eyebrow", "Koulway · Contrôle qualité & hygiène"));
+  doc.appendChild(el("h1", null, "Rapport de contrôle cuisine"));
+  const dt = d.ts ? new Date(d.ts) : new Date();
+  const dateStr = dt.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) +
+    " à " + dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  doc.appendChild(el("div", "meta", (d.site ? d.site + " — " : "") + "contrôle inopiné réalisé le " + dateStr + "."));
+
+  // Score
+  const box = el("div", "scorebox");
+  const num = el("div", "num", score === null ? "—" : String(score));
+  num.appendChild(el("small", null, " /100"));
+  box.appendChild(num);
+  const side = el("div");
+  side.appendChild(el("span", "grade" + (grade ? " g-" + grade.toLowerCase() : ""), grade || "—"));
+  side.appendChild(el("div", "glabel", grade ? GRADE_LABELS[grade] : "Aucun point évalué."));
+  side.appendChild(el("div", "glabel", evalTot + "/" + scoreableTot + " points de contrôle évalués · " +
+    okTot + " conformes · " + ncTot + " non-conformités · " + critTot + " critiques"));
+  box.appendChild(side);
+  doc.appendChild(box);
+
+  // 1. Synthèse
+  doc.appendChild(el("h2", null, "1. Synthèse du contrôleur"));
+  const strong = perSec.filter(s => s.pct !== null && s.pct >= 90).map(s => s.sec.title);
+  const weak = perSec.filter(s => s.pct !== null && s.pct < 65).map(s => s.sec.title);
+  let syn = "Sur les " + evalTot + " points de contrôle évalués, " + okTot +
+    " sont conformes (" + (evalTot ? Math.round(okTot / evalTot * 100) : 0) + " %). ";
+  if (critTot > 0) syn += critTot + " non-conformité" + (critTot > 1 ? "s" : "") +
+    " critique" + (critTot > 1 ? "s" : "") + " " + (critTot > 1 ? "ont" : "a") +
+    " été relevée" + (critTot > 1 ? "s" : "") + " ; leur correction est exigée sans délai. ";
+  else syn += "Aucune non-conformité critique n'a été relevée. ";
+  if (strong.length) syn += "Postes maîtrisés : " + strong.join(", ").toLowerCase() + ". ";
+  if (weak.length) syn += "Postes prioritaires : " + weak.join(", ").toLowerCase() + ". ";
+  syn += "Le site obtient la note " + (grade || "—") +
+    (grade === "A" ? " ; le niveau est à maintenir." :
+     grade === "B" ? " ; le niveau est correct, les écarts listés ci-dessous restent à corriger." :
+     " ; un plan d'action est établi ci-dessous et fera l'objet d'une contre-visite.");
+  doc.appendChild(el("p", null, syn));
+
+  // 2. Critiques
+  doc.appendChild(el("h2", null, "2. Points critiques — correction immédiate"));
+  if (critL.length) {
+    const cb = el("div", "crit-block");
+    const ul = el("ul");
+    critL.forEach(c => ul.appendChild(el("li", null, c.sec + " — " + c.label)));
+    cb.appendChild(ul);
+    doc.appendChild(cb);
+  } else {
+    doc.appendChild(el("p", null, "Aucun point critique relevé lors de cette visite."));
+  }
+
+  // 3. Non-conformités
+  doc.appendChild(el("h2", null, "3. Non-conformités relevées"));
+  if (ncL.length) {
+    const ul = el("ul");
+    ncL.forEach(c => ul.appendChild(el("li", null, c.sec + " — " + c.label)));
+    doc.appendChild(ul);
+  } else {
+    doc.appendChild(el("p", null, "Aucune non-conformité simple relevée."));
+  }
+
+  // 4. Résultats et observations par poste
+  doc.appendChild(el("h2", null, "4. Résultats et observations par poste"));
+  const wrap = el("div", "overflow");
+  const table = el("table");
+  const thead = el("thead"), trh = el("tr");
+  ["Poste", "Évalués", "Conformes", "Score"].forEach(t => trh.appendChild(el("th", null, t)));
+  thead.appendChild(trh); table.appendChild(thead);
+  const tbody = el("tbody");
+  perSec.forEach(s => {
+    const tr = el("tr");
+    tr.appendChild(el("td", null, s.sec.title));
+    tr.appendChild(el("td", "pct", s.e + "/" + s.sec.items.length));
+    tr.appendChild(el("td", "pct", String(s.o)));
+    tr.appendChild(el("td", "pct", s.pct === null ? "—" : s.pct + " %"));
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  doc.appendChild(wrap);
+  perSec.forEach(s => {
+    const items = tidy(notes[s.sec.id]);
+    if (items.length) {
+      const nb = el("div", "notes-block");
+      nb.appendChild(el("div", "who", "Observations — " + s.sec.title));
+      const ul = el("ul");
+      items.forEach(t => ul.appendChild(el("li", null, t)));
+      nb.appendChild(ul);
+      doc.appendChild(nb);
+    }
+  });
+
+  // 5. Entretien
+  const chef = SECTIONS.find(s => s.questions);
+  doc.appendChild(el("h2", null, "5. Entretien avec le chef d'équipe"));
+  const asked = chef.items.filter((q, i) => states[chef.id + "-" + i] === 1).length;
+  doc.appendChild(el("p", null, asked ? asked + "/" + chef.items.length +
+    " questions de l'entretien ont été posées. Éléments retenus :" :
+    "L'entretien n'a pas pu être mené lors de cette visite."));
+  const chefNotes = tidy(notes[chef.id]);
+  if (chefNotes.length) {
+    const nb = el("div", "notes-block");
+    nb.appendChild(el("div", "who", "Réponses et éléments recueillis"));
+    const ul = el("ul");
+    chefNotes.forEach(t => ul.appendChild(el("li", null, t)));
+    nb.appendChild(ul);
+    doc.appendChild(nb);
+  }
+
+  // 6. Plan d'action
+  doc.appendChild(el("h2", null, "6. Plan d'action"));
+  if (critL.length || ncL.length) {
+    const w2 = el("div", "overflow");
+    const t2 = el("table");
+    const th2 = el("thead"), tr2 = el("tr");
+    ["Écart constaté", "Poste", "Délai", "Responsable"].forEach(t => tr2.appendChild(el("th", null, t)));
+    th2.appendChild(tr2); t2.appendChild(th2);
+    const tb2 = el("tbody");
+    critL.forEach(c => {
+      const tr = el("tr");
+      tr.appendChild(el("td", null, c.label));
+      tr.appendChild(el("td", null, c.sec));
+      const td = el("td"); td.appendChild(el("span", "tag crit", "Immédiat")); tr.appendChild(td);
+      tr.appendChild(el("td", null, "Manager du site"));
+      tb2.appendChild(tr);
+    });
+    ncL.forEach(c => {
+      const tr = el("tr");
+      tr.appendChild(el("td", null, c.label));
+      tr.appendChild(el("td", null, c.sec));
+      const td = el("td"); td.appendChild(el("span", "tag nc", "Sous 7 jours")); tr.appendChild(td);
+      tr.appendChild(el("td", null, "Manager du site"));
+      tb2.appendChild(tr);
+    });
+    t2.appendChild(tb2);
+    w2.appendChild(t2);
+    doc.appendChild(w2);
+    doc.appendChild(el("p", null, "Une contre-visite inopinée sera réalisée pour vérifier la levée de chaque écart. Les points critiques signalés sur place devaient être corrigés avant la fin du service."));
+  } else {
+    doc.appendChild(el("p", null, "Aucun écart à traiter. Le niveau constaté est à maintenir ; une visite de suivi confirmera la stabilité des bonnes pratiques."));
+  }
+
+  // Signatures
+  const sig = el("div", "sig");
+  const s1 = el("div"); s1.appendChild(el("div", "line", "Le contrôleur — au nom de la direction"));
+  const s2 = el("div"); s2.appendChild(el("div", "line", "Pris connaissance — le manager du site"));
+  sig.appendChild(s1); sig.appendChild(s2);
+  doc.appendChild(sig);
+  doc.appendChild(el("p", "gen", "Rapport généré automatiquement à partir de la checklist de contrôle Koulway. Les photos prises pendant la visite complètent ce rapport."));
+
+  document.title = "Rapport de contrôle — " + (d.site || "Koulway");
+}
+
+document.getElementById("btn-print").addEventListener("click", () => window.print());
+document.getElementById("btn-copy").addEventListener("click", function () {
+  const b = this;
+  navigator.clipboard.writeText(location.href).then(() => {
+    b.textContent = "Lien copié ✓";
+    setTimeout(() => { b.textContent = "Copier le lien"; }, 1800);
+  });
+});
+document.getElementById("btn-wa").href = "https://wa.me/?text=" +
+  encodeURIComponent("Rapport de contrôle cuisine" + (data && data.site ? " — " + data.site : "") + " :\n" + location.href);
+</script>
+</body>
+</html>
