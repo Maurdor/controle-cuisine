@@ -221,7 +221,7 @@
   <div class="wrap">
     <button id="report">📄 Rapport</button>
     <button id="copy">Copier le bilan</button>
-    <button id="reset">Effacer</button>
+    <button id="reset">Nouveau contrôle</button>
   </div>
 </footer>
 <div class="toast" id="toast">Bilan copié</div>
@@ -597,7 +597,7 @@ document.getElementById("copy").addEventListener("click", () => {
 });
 
 document.getElementById("reset").addEventListener("click", () => {
-  if (confirm("Effacer tous les résultats de ce contrôle ?")) {
+  if (confirm("Commencer un nouveau contrôle ? Les coches et notes actuelles seront effacées de ce téléphone. Les rapports déjà générés (liens) et publiés restent accessibles.")) {
     store = { site: "", states: {}, notes: {} };
     save();
     siteInput.value = "";

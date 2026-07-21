@@ -285,15 +285,26 @@ function tidy(text) {
 }
 
 let data = null;
-try {
-  const h = location.hash.slice(1);
-  if (h) data = JSON.parse(decodeURIComponent(escape(atob(h))));
-} catch (e) { data = null; }
+let readOnly = false;
+const reportId = (new URLSearchParams(location.search).get("r") || "").replace(/[^a-zA-Z0-9-]/g, "");
 
-if (!data || !data.states) {
-  document.getElementById("err").hidden = false;
+if (reportId) {
+  // Page dédiée : rapport publié en lecture seule, chargé depuis le site.
+  readOnly = true;
+  fetch("rapports/" + reportId + ".json")
+    .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+    .then(d => { data = d; render(d); setWa(); })
+    .catch(() => { document.getElementById("err").hidden = false; });
 } else {
-  render(data);
+  try {
+    const h = location.hash.slice(1);
+    if (h) data = JSON.parse(decodeURIComponent(escape(atob(h))));
+  } catch (e) { data = null; }
+  if (!data || !data.states) {
+    document.getElementById("err").hidden = false;
+  } else {
+    render(data);
+  }
 }
 
 // Ré-encode les données dans l'URL après une modification, sans recharger la page.
@@ -336,9 +347,11 @@ function obsBlock(title, secId) {
   const blk = el("div", "obs");
   const head = el("div", "obs-head");
   head.appendChild(el("div", "gname", title));
-  const edit = el("button", "mini no-print", "✏️ Modifier");
-  edit.addEventListener("click", () => editorFor(secId, blk));
-  head.appendChild(edit);
+  if (!readOnly) {
+    const edit = el("button", "mini no-print", "✏️ Modifier");
+    edit.addEventListener("click", () => editorFor(secId, blk));
+    head.appendChild(edit);
+  }
   blk.appendChild(head);
   const ul = el("ul");
   tidy(data.notes && data.notes[secId]).forEach(t => ul.appendChild(el("li", null, "– " + t)));
@@ -494,23 +507,25 @@ function render(d) {
     anyNotes = true;
     op.appendChild(obsBlock(s.sec.title, s.sec.id));
   });
-  if (!anyNotes) op.appendChild(el("p", null, "Aucune observation pour l'instant."));
+  if (!anyNotes) op.appendChild(el("p", null, "Aucune observation pour ce contrôle."));
   ob.appendChild(op);
-  const addHost = el("div", "edit-host");
-  ob.appendChild(addHost);
-  ob.appendChild(el("p", "hint no-print", "✏️ Le lien du rapport se met à jour tout seul après chaque modification — recopie-le une fois tes corrections faites."));
-  const addRow = el("div", "add-row no-print");
-  const sel = el("select");
-  perSec.forEach(s => {
-    const o = el("option", null, s.sec.title);
-    o.value = s.sec.id;
-    sel.appendChild(o);
-  });
-  const addBtn = el("button", "mini solid", "＋ Ajouter / corriger");
-  addBtn.addEventListener("click", () => editorFor(sel.value, addHost));
-  addRow.appendChild(sel);
-  addRow.appendChild(addBtn);
-  ob.appendChild(addRow);
+  if (!readOnly) {
+    const addHost = el("div", "edit-host");
+    ob.appendChild(addHost);
+    ob.appendChild(el("p", "hint no-print", "✏️ Le lien du rapport se met à jour tout seul après chaque modification — recopie-le une fois tes corrections faites."));
+    const addRow = el("div", "add-row no-print");
+    const sel = el("select");
+    perSec.forEach(s => {
+      const o = el("option", null, s.sec.title);
+      o.value = s.sec.id;
+      sel.appendChild(o);
+    });
+    const addBtn = el("button", "mini solid", "＋ Ajouter / corriger");
+    addBtn.addEventListener("click", () => editorFor(sel.value, addHost));
+    addRow.appendChild(sel);
+    addRow.appendChild(addBtn);
+    ob.appendChild(addRow);
+  }
   doc.appendChild(ob);
 
   // ── 6. Entretien ──
@@ -525,7 +540,7 @@ function render(d) {
   if (chefNotes.length) {
     const blk = obsBlock("Éléments recueillis", chef.id);
     ep.appendChild(blk);
-  } else {
+  } else if (!readOnly) {
     const host = el("div");
     const btn = el("button", "mini no-print", "＋ Ajouter un commentaire");
     btn.addEventListener("click", () => editorFor(chef.id, host));
