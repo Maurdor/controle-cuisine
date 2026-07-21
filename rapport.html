@@ -149,7 +149,7 @@ function el(tag, cls, text) {
 // Nettoie les notes tapées en vrac : une puce par ligne, majuscule, point final.
 function tidy(text) {
   return (text || "").split(/\n+/).map(s => s.trim()).filter(Boolean).map(s => {
-    s = s.replace(/^[-–•*]\s*/, "");
+    s = s.replace(/^[-–•*]\s*/, "").replace(/\s+/g, " ");
     s = s.charAt(0).toUpperCase() + s.slice(1);
     if (!/[.!?…]$/.test(s)) s += ".";
     return s;
