@@ -237,6 +237,9 @@ const GRADE_LABELS = {
   D: "Alerte — reprise en main immédiate"
 };
 
+// Points retirés du contrôle (désactivés sans décaler les index des autres points).
+const SKIP = { "froid-5": 1 };
+
 function el(tag, cls, text) {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
@@ -351,6 +354,7 @@ function render(d) {
     if (sec.questions) return;
     let e = 0, o = 0;
     sec.items.forEach((label, i) => {
+      if (SKIP[sec.id + "-" + i]) return;
       const v = states[sec.id + "-" + i] || 0;
       scoreableTot++;
       if (v) { e++; evalTot++; }
@@ -360,10 +364,11 @@ function render(d) {
     });
     perSec.push({ sec: sec, e: e, o: o, pct: e ? Math.round(o / e * 100) : null });
   });
-  let score = null, grade = null;
+  // 1 point par point conforme ; note sur le % de conformité ; un critique plafonne à C.
+  let pct = null, grade = null;
   if (evalTot > 0) {
-    score = Math.max(0, Math.round(okTot / evalTot * 100 - critTot * 5));
-    grade = score >= 90 ? "A" : score >= 80 ? "B" : score >= 65 ? "C" : "D";
+    pct = Math.round(okTot / evalTot * 100);
+    grade = pct >= 90 ? "A" : pct >= 80 ? "B" : pct >= 65 ? "C" : "D";
     if (critTot > 0 && (grade === "A" || grade === "B")) grade = "C";
   }
 
@@ -382,12 +387,12 @@ function render(d) {
   hh.appendChild(el("p", "meta", (d.site ? d.site + " — " : "") + "contrôle inopiné du " + dateStr));
   hero.appendChild(hh);
   const sr = el("div", "score-row");
-  const num = el("div", "num", score === null ? "—" : String(score));
-  num.appendChild(el("small", null, "/100"));
+  const num = el("div", "num", pct === null ? "—" : String(okTot));
+  num.appendChild(el("small", null, pct === null ? " pts" : "/" + evalTot + " pts"));
   sr.appendChild(num);
   const side = el("div");
   side.appendChild(el("span", "grade" + (grade ? " g-" + grade.toLowerCase() : ""), grade || "—"));
-  side.appendChild(el("div", "glabel", grade ? GRADE_LABELS[grade] : "Aucun point évalué."));
+  side.appendChild(el("div", "glabel", grade ? pct + " % de conformité — " + GRADE_LABELS[grade] : "Aucun point évalué."));
   sr.appendChild(side);
   hero.appendChild(sr);
   if (evalTot > 0) {

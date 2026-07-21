@@ -204,9 +204,9 @@
       <h2>Score de la visite</h2>
       <span class="count" id="score-progress"></span>
     </div>
-    <div class="sec-hint">A ≥ 90 · B ≥ 80 · C ≥ 65 · D &lt; 65. Chaque critique : −5 pts et note plafonnée à C.</div>
+    <div class="sec-hint">1 point par point conforme. Note sur le % de conformité : A ≥ 90 · B ≥ 80 · C ≥ 65 · D &lt; 65. Un point critique plafonne la note à C.</div>
     <div class="score-wrap">
-      <div class="score-big"><span id="score-num">—</span><span class="score-sub">/100</span></div>
+      <div class="score-big"><span id="score-num">—</span><span class="score-sub" id="score-max"> pts</span></div>
       <div class="score-side">
         <span class="grade" id="grade-chip">—</span>
         <div class="grade-label" id="grade-label"></div>
@@ -342,6 +342,9 @@ const SECTIONS = [
   }
 ];
 
+// Points retirés du contrôle (désactivés sans décaler les index des autres points).
+const SKIP = { "froid-5": 1 };
+
 const KEY = "koulway-audit-v1";
 let store = { site: "", states: {}, notes: {} };
 try { store = Object.assign(store, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -366,6 +369,7 @@ SECTIONS.forEach(sec => {
   const ul = document.createElement("ul");
   ul.className = "items";
   sec.items.forEach((it, i) => {
+    if (SKIP[sec.id + "-" + i]) return;
     const id = sec.id + "-" + i;
     const li = document.createElement("li");
     li.className = "item";
@@ -431,6 +435,7 @@ function computeScore() {
     if (sec.questions) return;
     let e = 0, o = 0;
     sec.items.forEach((it, i) => {
+      if (SKIP[sec.id + "-" + i]) return;
       const v = store.states[sec.id + "-" + i] || 0;
       scoreableTot++;
       if (v) { e++; evalTot++; }
@@ -439,20 +444,22 @@ function computeScore() {
     });
     perSec.push({ name: sec.title.replace(/^\d+ · /, ""), pct: e ? Math.round(o / e * 100) : null, e: e, o: o });
   });
-  let score = null, grade = null;
+  // 1 point par point conforme ; note sur le % de conformité ; un critique plafonne à C.
+  let pct = null, grade = null;
   if (evalTot > 0) {
-    score = Math.max(0, Math.round(okTot / evalTot * 100 - critTot * 5));
-    grade = score >= 90 ? "A" : score >= 80 ? "B" : score >= 65 ? "C" : "D";
+    pct = Math.round(okTot / evalTot * 100);
+    grade = pct >= 90 ? "A" : pct >= 80 ? "B" : pct >= 65 ? "C" : "D";
     if (critTot > 0 && (grade === "A" || grade === "B")) grade = "C";
   }
-  return { score: score, grade: grade, evalTot: evalTot, scoreableTot: scoreableTot, critTot: critTot, perSec: perSec };
+  return { pts: okTot, max: evalTot, pct: pct, grade: grade, evalTot: evalTot, scoreableTot: scoreableTot, critTot: critTot, perSec: perSec };
 }
 
 function paint() {
   let total = 0, done = 0, ok = 0, nc = 0, crit = 0;
   SECTIONS.forEach(sec => {
-    let sdone = 0;
+    let sdone = 0, sTot = 0;
     sec.items.forEach((it, i) => {
+      if (SKIP[sec.id + "-" + i]) return;
       const id = sec.id + "-" + i;
       const v = store.states[id] || 0;
       const row = document.getElementById("row-" + id);
@@ -460,7 +467,7 @@ function paint() {
       row.querySelectorAll(".btns button").forEach(b => {
         b.className = (Number(b.dataset.v) === v) ? b.dataset.cls : "";
       });
-      total++;
+      sTot++; total++;
       if (v) { done++; sdone++; }
       if (!sec.questions) {
         if (v === 1) ok++;
@@ -468,7 +475,7 @@ function paint() {
         if (v === 3) crit++;
       }
     });
-    document.getElementById("c-" + sec.id).textContent = sdone + "/" + sec.items.length;
+    document.getElementById("c-" + sec.id).textContent = sdone + "/" + sTot;
   });
   document.getElementById("s-done").textContent = done + "/" + total + " contrôlés";
   document.getElementById("s-ok").textContent = ok + " conformes";
@@ -479,23 +486,26 @@ function paint() {
   const sc = computeScore();
   document.getElementById("score-progress").textContent = sc.evalTot + "/" + sc.scoreableTot + " points évalués";
   const numEl = document.getElementById("score-num");
+  const maxEl = document.getElementById("score-max");
   const chip = document.getElementById("grade-chip");
   const lbl = document.getElementById("grade-label");
-  if (sc.score === null) {
+  if (sc.pct === null) {
     numEl.textContent = "—";
+    maxEl.textContent = " pts";
     chip.textContent = "—";
     chip.className = "grade";
     lbl.textContent = "Coche des points pour calculer le score.";
   } else {
-    numEl.textContent = sc.score;
+    numEl.textContent = sc.pts;
+    maxEl.textContent = "/" + sc.max + " pts";
     chip.textContent = sc.grade;
     chip.className = "grade g-" + sc.grade.toLowerCase();
-    lbl.textContent = GRADE_LABELS[sc.grade] + (sc.evalTot < sc.scoreableTot ? " (provisoire)" : "");
+    lbl.textContent = sc.pct + " % de conformité — " + GRADE_LABELS[sc.grade] + (sc.evalTot < sc.scoreableTot ? " (provisoire)" : "");
   }
   const warn = document.getElementById("crit-warn");
   if (sc.critTot > 0) {
     warn.hidden = false;
-    warn.textContent = sc.critTot + " point(s) critique(s) : −5 pts chacun, note plafonnée à C tant que ce n'est pas corrigé.";
+    warn.textContent = sc.critTot + " point(s) critique(s) : note plafonnée à C tant que ce n'est pas corrigé.";
   } else {
     warn.hidden = true;
   }
@@ -540,6 +550,7 @@ document.getElementById("copy").addEventListener("click", () => {
   const ncL = [], critL = [];
   SECTIONS.forEach(sec => {
     sec.items.forEach((it, i) => {
+      if (SKIP[sec.id + "-" + i]) return;
       const v = store.states[sec.id + "-" + i] || 0;
       total++;
       if (v) done++;
@@ -553,9 +564,9 @@ document.getElementById("copy").addEventListener("click", () => {
   lines.push("Avancement : " + done + "/" + total + " points");
   lines.push("✅ " + ok + " conformes · ❌ " + nc + " non conformes · 🔴 " + crit + " critiques");
   const sc = computeScore();
-  if (sc.score !== null) {
+  if (sc.pct !== null) {
     lines.push("");
-    lines.push("🏆 SCORE : " + sc.score + "/100 — Note " + sc.grade + " (" + GRADE_LABELS[sc.grade] + ")" + (sc.evalTot < sc.scoreableTot ? " — provisoire" : ""));
+    lines.push("🏆 SCORE : " + sc.pts + "/" + sc.max + " points (" + sc.pct + " %) — Note " + sc.grade + " (" + GRADE_LABELS[sc.grade] + ")" + (sc.evalTot < sc.scoreableTot ? " — provisoire" : ""));
     lines.push("Par poste : " + sc.perSec.filter(s => s.pct !== null).map(s => s.name + " " + s.pct + " %").join(" · "));
   }
   if (critL.length) { lines.push(""); lines.push("🔴 CRITIQUES (corrigés sur place ou à corriger immédiatement) :"); lines.push(...critL); }
