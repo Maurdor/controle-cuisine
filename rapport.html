@@ -37,11 +37,12 @@
   body {
     background: var(--paper); color: var(--ink);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    font-size: 14.5px; line-height: 1.5; padding: 16px 12px 40px;
+    font-size: 15px; line-height: 1.55; padding: 12px 8px 36px;
   }
   .sheet {
     max-width: 780px; margin: 0 auto; background: var(--card);
-    border: 1px solid var(--line); border-radius: 12px; padding: 28px 26px;
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: clamp(16px, 4vw, 28px) clamp(13px, 4vw, 26px);
   }
   .toolbar {
     max-width: 780px; margin: 0 auto 12px; display: flex; gap: 8px; flex-wrap: wrap;
@@ -59,10 +60,11 @@
   h1 { font-size: 22px; margin: 4px 0 2px; letter-spacing: -0.01em; text-wrap: balance; }
   .meta { color: var(--muted); font-size: 13.5px; margin-bottom: 18px; }
   .scorebox {
-    display: flex; align-items: center; gap: 18px; border: 1px solid var(--line);
+    display: flex; align-items: center; flex-wrap: wrap; gap: 14px 18px; border: 1px solid var(--line);
     border-radius: 10px; padding: 14px 16px; margin: 14px 0 22px; background: var(--accent-soft);
   }
-  .scorebox .num { font-size: 40px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .scorebox .num { font-size: clamp(34px, 9vw, 42px); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .scorebox > div:last-child { flex: 1; min-width: 200px; }
   .scorebox .num small { font-size: 15px; color: var(--muted); font-weight: 600; }
   .grade {
     display: inline-block; padding: 2px 13px; border-radius: 999px;
@@ -78,23 +80,39 @@
   p { margin: 8px 0; }
   ul { margin: 6px 0; padding-left: 20px; }
   li { margin: 3px 0; }
-  table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 8px 0; }
-  th, td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
-  th { background: var(--accent-soft); font-weight: 700; }
-  td.pct { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .tag { font-weight: 700; }
-  .tag.crit { color: var(--crit); }
-  .tag.nc { color: var(--nc); }
-  .tag.ok { color: var(--ok); }
+  .group { margin: 12px 0; }
+  .group .gname {
+    font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--muted); margin: 10px 0 3px;
+  }
+  .group ul { margin: 2px 0; }
+  ul.postes { list-style: none; padding: 0; margin: 12px 0; }
+  .postes li { margin: 13px 0; }
+  .postes .prow { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .postes .pname { flex: 1; font-weight: 600; font-size: 14px; min-width: 140px; }
+  .postes .pdet { font-size: 12px; color: var(--muted); }
+  .postes .ppct { font-weight: 800; font-variant-numeric: tabular-nums; min-width: 48px; text-align: right; }
+  .postes .pbar { display: block; height: 7px; border-radius: 4px; background: var(--line); overflow: hidden; margin-top: 5px; }
+  .postes .pfill { display: block; height: 100%; border-radius: 4px; }
+  ul.actions-list { list-style: none; padding: 0; margin: 10px 0; display: flex; flex-direction: column; gap: 8px; }
+  .action-card { border: 1px solid var(--line); border-left: 4px solid var(--nc); border-radius: 8px; padding: 9px 12px; }
+  .action-card.crit { border-left-color: var(--crit); background: var(--crit-soft); }
+  .chip {
+    display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.05em;
+    text-transform: uppercase; padding: 2px 9px; border-radius: 999px;
+    color: #fff; background: var(--nc); margin-bottom: 4px;
+  }
+  .action-card.crit .chip { background: var(--crit); }
+  .action-card .what { font-weight: 600; }
+  .action-card .where { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
   .crit-block { background: var(--crit-soft); border: 1px solid var(--crit); border-radius: 8px; padding: 10px 14px; margin: 8px 0; }
   .notes-block { background: var(--paper); border-left: 3px solid var(--accent); padding: 6px 12px; margin: 6px 0 12px; }
   .notes-block .who { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-  .sig { display: flex; gap: 24px; margin-top: 34px; }
-  .sig div { flex: 1; }
+  .sig { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 34px; }
+  .sig div { flex: 1; min-width: 200px; }
   .sig .line { border-top: 1px solid var(--ink); margin-top: 46px; padding-top: 5px; font-size: 12.5px; color: var(--muted); }
   .gen { margin-top: 26px; font-size: 11.5px; color: var(--muted); }
   #err { max-width: 780px; margin: 40px auto; text-align: center; color: var(--muted); }
-  .overflow { overflow-x: auto; }
 </style>
 </head>
 <body>
@@ -144,6 +162,23 @@ function el(tag, cls, text) {
   if (cls) e.className = cls;
   if (text !== undefined) e.textContent = text;
   return e;
+}
+
+// Regroupe une liste de {sec, label} par poste, en conservant l'ordre des postes.
+function renderGroups(container, list) {
+  const m = new Map();
+  list.forEach(x => {
+    if (!m.has(x.sec)) m.set(x.sec, []);
+    m.get(x.sec).push(x.label);
+  });
+  m.forEach((items, sec) => {
+    const g = el("div", "group");
+    g.appendChild(el("div", "gname", sec));
+    const ul = el("ul");
+    items.forEach(t => ul.appendChild(el("li", null, t)));
+    g.appendChild(ul);
+    container.appendChild(g);
+  });
 }
 
 // Nettoie les notes tapées en vrac : une puce par ligne, majuscule, point final.
@@ -236,9 +271,7 @@ function render(d) {
   doc.appendChild(el("h2", null, "2. Points critiques — correction immédiate"));
   if (critL.length) {
     const cb = el("div", "crit-block");
-    const ul = el("ul");
-    critL.forEach(c => ul.appendChild(el("li", null, c.sec + " — " + c.label)));
-    cb.appendChild(ul);
+    renderGroups(cb, critL);
     doc.appendChild(cb);
   } else {
     doc.appendChild(el("p", null, "Aucun point critique relevé lors de cette visite."));
@@ -247,32 +280,32 @@ function render(d) {
   // 3. Non-conformités
   doc.appendChild(el("h2", null, "3. Non-conformités relevées"));
   if (ncL.length) {
-    const ul = el("ul");
-    ncL.forEach(c => ul.appendChild(el("li", null, c.sec + " — " + c.label)));
-    doc.appendChild(ul);
+    renderGroups(doc, ncL);
   } else {
     doc.appendChild(el("p", null, "Aucune non-conformité simple relevée."));
   }
 
   // 4. Résultats et observations par poste
   doc.appendChild(el("h2", null, "4. Résultats et observations par poste"));
-  const wrap = el("div", "overflow");
-  const table = el("table");
-  const thead = el("thead"), trh = el("tr");
-  ["Poste", "Évalués", "Conformes", "Score"].forEach(t => trh.appendChild(el("th", null, t)));
-  thead.appendChild(trh); table.appendChild(thead);
-  const tbody = el("tbody");
+  const pl = el("ul", "postes");
   perSec.forEach(s => {
-    const tr = el("tr");
-    tr.appendChild(el("td", null, s.sec.title));
-    tr.appendChild(el("td", "pct", s.e + "/" + s.sec.items.length));
-    tr.appendChild(el("td", "pct", String(s.o)));
-    tr.appendChild(el("td", "pct", s.pct === null ? "—" : s.pct + " %"));
-    tbody.appendChild(tr);
+    const li = el("li");
+    const row = el("div", "prow");
+    row.appendChild(el("span", "pname", s.sec.title));
+    row.appendChild(el("span", "pdet", s.o + "/" + s.e + " conformes"));
+    row.appendChild(el("span", "ppct", s.pct === null ? "—" : s.pct + " %"));
+    li.appendChild(row);
+    const bar = el("span", "pbar");
+    const fill = el("span", "pfill");
+    if (s.pct !== null) {
+      fill.style.width = s.pct + "%";
+      fill.style.background = s.pct >= 90 ? "var(--ok)" : s.pct >= 65 ? "var(--nc)" : "var(--crit)";
+    }
+    bar.appendChild(fill);
+    li.appendChild(bar);
+    pl.appendChild(li);
   });
-  table.appendChild(tbody);
-  wrap.appendChild(table);
-  doc.appendChild(wrap);
+  doc.appendChild(pl);
   perSec.forEach(s => {
     const items = tidy(notes[s.sec.id]);
     if (items.length) {
@@ -305,32 +338,23 @@ function render(d) {
   // 6. Plan d'action
   doc.appendChild(el("h2", null, "6. Plan d'action"));
   if (critL.length || ncL.length) {
-    const w2 = el("div", "overflow");
-    const t2 = el("table");
-    const th2 = el("thead"), tr2 = el("tr");
-    ["Écart constaté", "Poste", "Délai", "Responsable"].forEach(t => tr2.appendChild(el("th", null, t)));
-    th2.appendChild(tr2); t2.appendChild(th2);
-    const tb2 = el("tbody");
+    const al = el("ul", "actions-list");
     critL.forEach(c => {
-      const tr = el("tr");
-      tr.appendChild(el("td", null, c.label));
-      tr.appendChild(el("td", null, c.sec));
-      const td = el("td"); td.appendChild(el("span", "tag crit", "Immédiat")); tr.appendChild(td);
-      tr.appendChild(el("td", null, "Manager du site"));
-      tb2.appendChild(tr);
+      const li = el("li", "action-card crit");
+      li.appendChild(el("span", "chip", "Immédiat"));
+      li.appendChild(el("div", "what", c.label));
+      li.appendChild(el("div", "where", c.sec));
+      al.appendChild(li);
     });
     ncL.forEach(c => {
-      const tr = el("tr");
-      tr.appendChild(el("td", null, c.label));
-      tr.appendChild(el("td", null, c.sec));
-      const td = el("td"); td.appendChild(el("span", "tag nc", "Sous 7 jours")); tr.appendChild(td);
-      tr.appendChild(el("td", null, "Manager du site"));
-      tb2.appendChild(tr);
+      const li = el("li", "action-card");
+      li.appendChild(el("span", "chip", "Sous 7 jours"));
+      li.appendChild(el("div", "what", c.label));
+      li.appendChild(el("div", "where", c.sec));
+      al.appendChild(li);
     });
-    t2.appendChild(tb2);
-    w2.appendChild(t2);
-    doc.appendChild(w2);
-    doc.appendChild(el("p", null, "Une contre-visite inopinée sera réalisée pour vérifier la levée de chaque écart. Les points critiques signalés sur place devaient être corrigés avant la fin du service."));
+    doc.appendChild(al);
+    doc.appendChild(el("p", null, "Responsable de la levée des écarts : le manager du site. Les points critiques signalés sur place devaient être corrigés avant la fin du service. Une contre-visite inopinée vérifiera la levée de chaque écart."));
   } else {
     doc.appendChild(el("p", null, "Aucun écart à traiter. Le niveau constaté est à maintenir ; une visite de suivi confirmera la stabilité des bonnes pratiques."));
   }
