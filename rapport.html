@@ -30,102 +30,156 @@
     }
     .no-print { display: none !important; }
     body { padding: 0; }
-    .sheet { border: none; box-shadow: none; padding: 0; }
+    .poste, .action-card, .group { break-inside: avoid; }
   }
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   html, body { margin: 0; }
   body {
     background: var(--paper); color: var(--ink);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    font-size: 15px; line-height: 1.55; padding: 12px 8px 36px;
+    font-size: 15.5px; line-height: 1.55;
+    padding: 10px 10px calc(84px + env(safe-area-inset-bottom));
   }
-  .sheet {
-    max-width: 780px; margin: 0 auto; background: var(--card);
-    border: 1px solid var(--line); border-radius: 12px;
-    padding: clamp(16px, 4vw, 28px) clamp(13px, 4vw, 26px);
+  .wrap { max-width: 640px; margin: 0 auto; }
+
+  section.card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; margin: 12px 0; overflow: hidden;
   }
-  .toolbar {
-    max-width: 780px; margin: 0 auto 12px; display: flex; gap: 8px; flex-wrap: wrap;
-  }
-  .toolbar button, .toolbar a {
-    flex: 1; min-width: 110px; text-align: center; padding: 11px 10px; border-radius: 10px;
-    font: inherit; font-weight: 700; cursor: pointer; text-decoration: none;
-    border: 1.5px solid var(--accent); background: var(--accent); color: #fff;
-  }
-  .toolbar .ghost { background: transparent; color: var(--accent); }
+  .sec-head { padding: 14px 16px 2px; }
+  .sec-head h2 { font-size: 16.5px; margin: 0; letter-spacing: -0.01em; }
+  .pad { padding: 6px 16px 14px; }
+  .pad p { margin: 8px 0; }
+
+  /* ── carte de tête ── */
   .eyebrow {
     font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
     text-transform: uppercase; color: var(--accent);
   }
-  h1 { font-size: 22px; margin: 4px 0 2px; letter-spacing: -0.01em; text-wrap: balance; }
-  .meta { color: var(--muted); font-size: 13.5px; margin-bottom: 18px; }
-  .scorebox {
-    display: flex; align-items: center; flex-wrap: wrap; gap: 14px 18px; border: 1px solid var(--line);
-    border-radius: 10px; padding: 14px 16px; margin: 14px 0 22px; background: var(--accent-soft);
+  h1 { font-size: 21px; margin: 3px 0 4px; letter-spacing: -0.01em; text-wrap: balance; }
+  .meta { color: var(--muted); font-size: 13.5px; margin: 0; }
+  .score-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 16px 10px;
   }
-  .scorebox .num { font-size: clamp(34px, 9vw, 42px); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
-  .scorebox > div:last-child { flex: 1; min-width: 200px; }
-  .scorebox .num small { font-size: 15px; color: var(--muted); font-weight: 600; }
+  .score-row .num {
+    font-size: clamp(44px, 13vw, 56px); font-weight: 800; line-height: 1;
+    font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+  }
+  .score-row .num small { font-size: 17px; color: var(--muted); font-weight: 600; }
   .grade {
-    display: inline-block; padding: 2px 13px; border-radius: 999px;
-    font-weight: 800; font-size: 17px; color: #fff; background: var(--muted);
+    display: inline-block; padding: 4px 16px; border-radius: 999px;
+    font-weight: 800; font-size: 19px; color: #fff; background: var(--muted);
   }
   .g-a { background: var(--ok); } .g-b { background: var(--accent); }
   .g-c { background: var(--nc); } .g-d { background: var(--crit); }
-  .glabel { font-size: 13px; color: var(--muted); margin-top: 4px; }
-  h2 {
-    font-size: 15.5px; margin: 26px 0 8px; padding-bottom: 5px;
-    border-bottom: 2px solid var(--accent);
+  .glabel { font-size: 13.5px; color: var(--muted); margin-top: 6px; }
+  .stats {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 2px 16px 16px; font-size: 12.5px; font-variant-numeric: tabular-nums;
   }
-  p { margin: 8px 0; }
-  ul { margin: 6px 0; padding-left: 20px; }
-  li { margin: 3px 0; }
-  .group { margin: 12px 0; }
-  .group .gname {
-    font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em;
-    text-transform: uppercase; color: var(--muted); margin: 10px 0 3px;
+  .stats span {
+    padding: 3px 10px; border-radius: 999px;
+    background: var(--paper); border: 1px solid var(--line); white-space: nowrap;
   }
-  .group ul { margin: 2px 0; }
-  ul.postes { list-style: none; padding: 0; margin: 12px 0; }
-  .postes li { margin: 13px 0; }
-  .postes .prow { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-  .postes .pname { flex: 1; font-weight: 600; font-size: 14px; min-width: 140px; }
-  .postes .pdet { font-size: 12px; color: var(--muted); }
-  .postes .ppct { font-weight: 800; font-variant-numeric: tabular-nums; min-width: 48px; text-align: right; }
-  .postes .pbar { display: block; height: 7px; border-radius: 4px; background: var(--line); overflow: hidden; margin-top: 5px; }
-  .postes .pfill { display: block; height: 100%; border-radius: 4px; }
-  ul.actions-list { list-style: none; padding: 0; margin: 10px 0; display: flex; flex-direction: column; gap: 8px; }
-  .action-card { border: 1px solid var(--line); border-left: 4px solid var(--nc); border-radius: 8px; padding: 9px 12px; }
-  .action-card.crit { border-left-color: var(--crit); background: var(--crit-soft); }
+  .stats .s-ok { color: var(--ok); border-color: var(--ok); }
+  .stats .s-nc { color: var(--nc); border-color: var(--nc); }
+  .stats .s-crit { color: var(--crit); border-color: var(--crit); font-weight: 700; }
+
+  /* ── synthèse ── */
+  .kv { font-weight: 600; }
+  .kv.good { color: var(--ok); }
+  .kv.warn { color: var(--nc); }
+
+  /* ── groupes par poste (critiques, NC, observations) ── */
+  .glist { padding: 2px 16px 14px; }
+  .gname {
+    font-size: 11.5px; font-weight: 800; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--muted); margin: 12px 0 2px;
+  }
+  ul.gitems { list-style: none; margin: 0; padding: 0; }
+  .gitems li {
+    position: relative; padding: 7px 0 7px 16px; font-size: 14.5px;
+  }
+  .gitems li + li { border-top: 1px solid var(--line); }
+  .gitems li::before {
+    content: ""; position: absolute; left: 0; top: 0.95em;
+    width: 7px; height: 7px; border-radius: 50%; background: var(--nc);
+  }
+  .gitems.crit li::before { background: var(--crit); }
+  .card.critical { border-color: var(--crit); background: var(--crit-soft); }
+  .card.critical .gitems li + li { border-top-color: color-mix(in srgb, var(--crit) 25%, transparent); }
+
+  /* ── résultats par poste ── */
+  .poste { padding: 11px 16px; border-top: 1px solid var(--line); }
+  .poste:first-of-type { border-top: none; }
+  .poste .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .poste .pname { font-weight: 600; font-size: 14.5px; min-width: 0; }
+  .poste .ppct { font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .poste .pdet { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .poste .pbar { display: block; height: 7px; border-radius: 4px; background: var(--line); margin-top: 7px; overflow: hidden; }
+  .poste .pfill { display: block; height: 100%; border-radius: 4px; }
+
+  /* ── observations ── */
+  .obs { border-left: 3px solid var(--accent); padding-left: 12px; margin: 10px 0 4px; }
+  .obs ul { list-style: none; margin: 2px 0 0; padding: 0; }
+  .obs li { padding: 4px 0; font-size: 14.5px; }
+
+  /* ── plan d'action ── */
+  .acts { display: flex; flex-direction: column; gap: 9px; padding: 8px 16px 14px; }
+  .action-card {
+    border: 1px solid var(--line); border-left: 4px solid var(--nc);
+    border-radius: 10px; padding: 10px 12px; background: var(--card);
+  }
+  .action-card.crit { border-left-color: var(--crit); border-color: var(--crit); background: var(--crit-soft); }
   .chip {
     display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.05em;
-    text-transform: uppercase; padding: 2px 9px; border-radius: 999px;
-    color: #fff; background: var(--nc); margin-bottom: 4px;
+    text-transform: uppercase; padding: 2px 10px; border-radius: 999px;
+    color: #fff; background: var(--nc); margin-bottom: 5px;
   }
   .action-card.crit .chip { background: var(--crit); }
-  .action-card .what { font-weight: 600; }
+  .action-card .what { font-weight: 600; font-size: 14.5px; }
   .action-card .where { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
-  .crit-block { background: var(--crit-soft); border: 1px solid var(--crit); border-radius: 8px; padding: 10px 14px; margin: 8px 0; }
-  .notes-block { background: var(--paper); border-left: 3px solid var(--accent); padding: 6px 12px; margin: 6px 0 12px; }
-  .notes-block .who { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-  .sig { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 34px; }
-  .sig div { flex: 1; min-width: 200px; }
-  .sig .line { border-top: 1px solid var(--ink); margin-top: 46px; padding-top: 5px; font-size: 12.5px; color: var(--muted); }
-  .gen { margin-top: 26px; font-size: 11.5px; color: var(--muted); }
-  #err { max-width: 780px; margin: 40px auto; text-align: center; color: var(--muted); }
+
+  /* ── signatures ── */
+  .sig { display: flex; flex-wrap: wrap; gap: 20px; padding: 6px 16px 18px; }
+  .sig div { flex: 1; min-width: 190px; }
+  .sig .line { border-top: 1px solid var(--ink); margin-top: 44px; padding-top: 5px; font-size: 12px; color: var(--muted); }
+  .gen { padding: 0 16px 14px; font-size: 11.5px; color: var(--muted); }
+
+  /* ── barre d'actions ── */
+  footer.toolbar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+    background: var(--paper); border-top: 1px solid var(--line);
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  }
+  footer.toolbar .wrap { display: flex; gap: 8px; }
+  .toolbar button, .toolbar a {
+    flex: 1; text-align: center; padding: 12px 8px; border-radius: 10px;
+    font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; text-decoration: none;
+    border: 1.5px solid var(--accent); background: var(--accent); color: #fff;
+  }
+  .toolbar .ghost { background: transparent; color: var(--accent); }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  #err { max-width: 640px; margin: 60px auto; text-align: center; color: var(--muted); padding: 0 16px; }
+  #err a { color: var(--accent); }
 </style>
 </head>
 <body>
-<div class="toolbar no-print">
-  <button id="btn-print">Imprimer / PDF</button>
-  <button id="btn-copy" class="ghost">Copier le lien</button>
-  <a id="btn-wa" class="ghost" target="_blank" rel="noopener">WhatsApp</a>
-</div>
 <div id="err" hidden>
   <p>Aucune donnée de contrôle dans ce lien.</p>
   <p>Ouvre ce rapport depuis le bouton <b>📄 Rapport</b> de la <a href="./">checklist</a>.</p>
 </div>
-<article class="sheet" id="doc" hidden></article>
+<main class="wrap" id="doc" hidden></main>
+<footer class="toolbar no-print">
+  <div class="wrap">
+    <button id="btn-print">PDF</button>
+    <button id="btn-copy" class="ghost">Copier le lien</button>
+    <a id="btn-wa" class="ghost" target="_blank" rel="noopener">WhatsApp</a>
+  </div>
+</footer>
 
 <script>
 const SECTIONS = [
@@ -164,21 +218,31 @@ function el(tag, cls, text) {
   return e;
 }
 
-// Regroupe une liste de {sec, label} par poste, en conservant l'ordre des postes.
-function renderGroups(container, list) {
+function card(title) {
+  const c = el("section", "card");
+  if (title) {
+    const h = el("div", "sec-head");
+    h.appendChild(el("h2", null, title));
+    c.appendChild(h);
+  }
+  return c;
+}
+
+// Regroupe une liste de {sec, label} par poste, une pastille par écart.
+function renderGroups(container, list, critical) {
   const m = new Map();
   list.forEach(x => {
     if (!m.has(x.sec)) m.set(x.sec, []);
     m.get(x.sec).push(x.label);
   });
+  const g = el("div", "glist");
   m.forEach((items, sec) => {
-    const g = el("div", "group");
     g.appendChild(el("div", "gname", sec));
-    const ul = el("ul");
+    const ul = el("ul", "gitems" + (critical ? " crit" : ""));
     items.forEach(t => ul.appendChild(el("li", null, t)));
     g.appendChild(ul);
-    container.appendChild(g);
   });
+  container.appendChild(g);
 }
 
 // Nettoie les notes tapées en vrac : une puce par ligne, majuscule, point final.
@@ -229,72 +293,93 @@ function render(d) {
 
   const doc = document.getElementById("doc");
   doc.hidden = false;
-  doc.appendChild(el("div", "eyebrow", "Koulway · Contrôle qualité & hygiène"));
-  doc.appendChild(el("h1", null, "Rapport de contrôle cuisine"));
+
+  // ── Carte de tête : titre + score ──
+  const hero = el("section", "card");
+  const hh = el("div", "sec-head");
+  hh.appendChild(el("div", "eyebrow", "Koulway · Contrôle qualité & hygiène"));
+  hh.appendChild(el("h1", null, "Rapport de contrôle cuisine"));
   const dt = d.ts ? new Date(d.ts) : new Date();
   const dateStr = dt.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) +
     " à " + dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-  doc.appendChild(el("div", "meta", (d.site ? d.site + " — " : "") + "contrôle inopiné réalisé le " + dateStr + "."));
-
-  // Score
-  const box = el("div", "scorebox");
+  hh.appendChild(el("p", "meta", (d.site ? d.site + " — " : "") + "contrôle inopiné du " + dateStr));
+  hero.appendChild(hh);
+  const sr = el("div", "score-row");
   const num = el("div", "num", score === null ? "—" : String(score));
-  num.appendChild(el("small", null, " /100"));
-  box.appendChild(num);
+  num.appendChild(el("small", null, "/100"));
+  sr.appendChild(num);
   const side = el("div");
   side.appendChild(el("span", "grade" + (grade ? " g-" + grade.toLowerCase() : ""), grade || "—"));
   side.appendChild(el("div", "glabel", grade ? GRADE_LABELS[grade] : "Aucun point évalué."));
-  side.appendChild(el("div", "glabel", evalTot + "/" + scoreableTot + " points de contrôle évalués · " +
-    okTot + " conformes · " + ncTot + " non-conformités · " + critTot + " critiques"));
-  box.appendChild(side);
-  doc.appendChild(box);
+  sr.appendChild(side);
+  hero.appendChild(sr);
+  const st = el("div", "stats");
+  st.appendChild(el("span", null, evalTot + "/" + scoreableTot + " évalués"));
+  st.appendChild(el("span", "s-ok", okTot + " conformes"));
+  st.appendChild(el("span", "s-nc", ncTot + " non conf."));
+  st.appendChild(el("span", "s-crit", critTot + " critique" + (critTot > 1 ? "s" : "")));
+  hero.appendChild(st);
+  doc.appendChild(hero);
 
-  // 1. Synthèse
-  doc.appendChild(el("h2", null, "1. Synthèse du contrôleur"));
+  // ── 1. Synthèse ──
+  const syn = card("1 · Synthèse du contrôleur");
+  const sp = el("div", "pad");
+  sp.appendChild(el("p", null, "Sur les " + evalTot + " points de contrôle évalués, " + okTot +
+    " sont conformes, soit " + (evalTot ? Math.round(okTot / evalTot * 100) : 0) + " %."));
+  if (critTot > 0) {
+    sp.appendChild(el("p", null, critTot + " non-conformité" + (critTot > 1 ? "s" : "") +
+      " critique" + (critTot > 1 ? "s" : "") + " relevée" + (critTot > 1 ? "s" : "") +
+      " — correction exigée sans délai."));
+  } else {
+    sp.appendChild(el("p", null, "Aucune non-conformité critique relevée."));
+  }
   const strong = perSec.filter(s => s.pct !== null && s.pct >= 90).map(s => s.sec.title);
   const weak = perSec.filter(s => s.pct !== null && s.pct < 65).map(s => s.sec.title);
-  let syn = "Sur les " + evalTot + " points de contrôle évalués, " + okTot +
-    " sont conformes (" + (evalTot ? Math.round(okTot / evalTot * 100) : 0) + " %). ";
-  if (critTot > 0) syn += critTot + " non-conformité" + (critTot > 1 ? "s" : "") +
-    " critique" + (critTot > 1 ? "s" : "") + " " + (critTot > 1 ? "ont" : "a") +
-    " été relevée" + (critTot > 1 ? "s" : "") + " ; leur correction est exigée sans délai. ";
-  else syn += "Aucune non-conformité critique n'a été relevée. ";
-  if (strong.length) syn += "Postes maîtrisés : " + strong.join(", ").toLowerCase() + ". ";
-  if (weak.length) syn += "Postes prioritaires : " + weak.join(", ").toLowerCase() + ". ";
-  syn += "Le site obtient la note " + (grade || "—") +
-    (grade === "A" ? " ; le niveau est à maintenir." :
-     grade === "B" ? " ; le niveau est correct, les écarts listés ci-dessous restent à corriger." :
-     " ; un plan d'action est établi ci-dessous et fera l'objet d'une contre-visite.");
-  doc.appendChild(el("p", null, syn));
+  if (strong.length) sp.appendChild(el("p", "kv good", "✓ Postes maîtrisés : " + strong.join(" · ")));
+  if (weak.length) sp.appendChild(el("p", "kv warn", "⚠ Postes prioritaires : " + weak.join(" · ")));
+  sp.appendChild(el("p", null,
+    grade === "A" ? "Le niveau constaté est à maintenir." :
+    grade === "B" ? "Le niveau est correct ; les écarts listés ci-dessous restent à corriger." :
+    "Un plan d'action est établi ci-dessous et fera l'objet d'une contre-visite."));
+  syn.appendChild(sp);
+  doc.appendChild(syn);
 
-  // 2. Critiques
-  doc.appendChild(el("h2", null, "2. Points critiques — correction immédiate"));
+  // ── 2. Points critiques ──
   if (critL.length) {
-    const cb = el("div", "crit-block");
-    renderGroups(cb, critL);
-    doc.appendChild(cb);
+    const cc = card("2 · Points critiques — correction immédiate");
+    cc.className = "card critical";
+    renderGroups(cc, critL, true);
+    doc.appendChild(cc);
   } else {
-    doc.appendChild(el("p", null, "Aucun point critique relevé lors de cette visite."));
+    const cc = card("2 · Points critiques");
+    const p = el("div", "pad");
+    p.appendChild(el("p", null, "Aucun point critique relevé lors de cette visite."));
+    cc.appendChild(p);
+    doc.appendChild(cc);
   }
 
-  // 3. Non-conformités
-  doc.appendChild(el("h2", null, "3. Non-conformités relevées"));
+  // ── 3. Non-conformités ──
+  const nc = card("3 · Non-conformités relevées");
   if (ncL.length) {
-    renderGroups(doc, ncL);
+    renderGroups(nc, ncL, false);
   } else {
-    doc.appendChild(el("p", null, "Aucune non-conformité simple relevée."));
+    const p = el("div", "pad");
+    p.appendChild(el("p", null, "Aucune non-conformité simple relevée."));
+    nc.appendChild(p);
   }
+  doc.appendChild(nc);
 
-  // 4. Résultats et observations par poste
-  doc.appendChild(el("h2", null, "4. Résultats et observations par poste"));
-  const pl = el("ul", "postes");
+  // ── 4. Résultats par poste ──
+  const res = card("4 · Résultats par poste");
   perSec.forEach(s => {
-    const li = el("li");
-    const row = el("div", "prow");
-    row.appendChild(el("span", "pname", s.sec.title));
-    row.appendChild(el("span", "pdet", s.o + "/" + s.e + " conformes"));
-    row.appendChild(el("span", "ppct", s.pct === null ? "—" : s.pct + " %"));
-    li.appendChild(row);
+    const po = el("div", "poste");
+    const top = el("div", "top");
+    top.appendChild(el("span", "pname", s.sec.title));
+    const pct = el("span", "ppct", s.pct === null ? "—" : s.pct + " %");
+    if (s.pct !== null) pct.style.color = s.pct >= 90 ? "var(--ok)" : s.pct >= 65 ? "var(--nc)" : "var(--crit)";
+    top.appendChild(pct);
+    po.appendChild(top);
+    po.appendChild(el("div", "pdet", s.pct === null ? "non évalué" : s.o + "/" + s.e + " points conformes"));
     const bar = el("span", "pbar");
     const fill = el("span", "pfill");
     if (s.pct !== null) {
@@ -302,70 +387,88 @@ function render(d) {
       fill.style.background = s.pct >= 90 ? "var(--ok)" : s.pct >= 65 ? "var(--nc)" : "var(--crit)";
     }
     bar.appendChild(fill);
-    li.appendChild(bar);
-    pl.appendChild(li);
+    po.appendChild(bar);
+    res.appendChild(po);
   });
-  doc.appendChild(pl);
-  perSec.forEach(s => {
-    const items = tidy(notes[s.sec.id]);
-    if (items.length) {
-      const nb = el("div", "notes-block");
-      nb.appendChild(el("div", "who", "Observations — " + s.sec.title));
-      const ul = el("ul");
-      items.forEach(t => ul.appendChild(el("li", null, t)));
-      nb.appendChild(ul);
-      doc.appendChild(nb);
-    }
-  });
+  doc.appendChild(res);
 
-  // 5. Entretien
+  // ── 5. Observations du contrôleur ──
+  const hasNotes = perSec.some(s => tidy(notes[s.sec.id]).length);
+  if (hasNotes) {
+    const ob = card("5 · Observations du contrôleur");
+    const op = el("div", "pad");
+    perSec.forEach(s => {
+      const items = tidy(notes[s.sec.id]);
+      if (!items.length) return;
+      const blk = el("div", "obs");
+      blk.appendChild(el("div", "gname", s.sec.title));
+      const ul = el("ul");
+      items.forEach(t => ul.appendChild(el("li", null, "– " + t)));
+      blk.appendChild(ul);
+      op.appendChild(blk);
+    });
+    ob.appendChild(op);
+    doc.appendChild(ob);
+  }
+
+  // ── 6. Entretien ──
   const chef = SECTIONS.find(s => s.questions);
-  doc.appendChild(el("h2", null, "5. Entretien avec le chef d'équipe"));
+  const en = card("6 · Entretien avec le chef d'équipe");
+  const ep = el("div", "pad");
   const asked = chef.items.filter((q, i) => states[chef.id + "-" + i] === 1).length;
-  doc.appendChild(el("p", null, asked ? asked + "/" + chef.items.length +
-    " questions de l'entretien ont été posées. Éléments retenus :" :
+  ep.appendChild(el("p", null, asked ? asked + "/" + chef.items.length +
+    " questions de l'entretien ont été posées." :
     "L'entretien n'a pas pu être mené lors de cette visite."));
   const chefNotes = tidy(notes[chef.id]);
   if (chefNotes.length) {
-    const nb = el("div", "notes-block");
-    nb.appendChild(el("div", "who", "Réponses et éléments recueillis"));
+    const blk = el("div", "obs");
+    blk.appendChild(el("div", "gname", "Éléments recueillis"));
     const ul = el("ul");
-    chefNotes.forEach(t => ul.appendChild(el("li", null, t)));
-    nb.appendChild(ul);
-    doc.appendChild(nb);
+    chefNotes.forEach(t => ul.appendChild(el("li", null, "– " + t)));
+    blk.appendChild(ul);
+    ep.appendChild(blk);
   }
+  en.appendChild(ep);
+  doc.appendChild(en);
 
-  // 6. Plan d'action
-  doc.appendChild(el("h2", null, "6. Plan d'action"));
+  // ── 7. Plan d'action ──
+  const pa = card("7 · Plan d'action");
   if (critL.length || ncL.length) {
-    const al = el("ul", "actions-list");
+    const al = el("div", "acts");
     critL.forEach(c => {
-      const li = el("li", "action-card crit");
+      const li = el("div", "action-card crit");
       li.appendChild(el("span", "chip", "Immédiat"));
       li.appendChild(el("div", "what", c.label));
       li.appendChild(el("div", "where", c.sec));
       al.appendChild(li);
     });
     ncL.forEach(c => {
-      const li = el("li", "action-card");
+      const li = el("div", "action-card");
       li.appendChild(el("span", "chip", "Sous 7 jours"));
       li.appendChild(el("div", "what", c.label));
       li.appendChild(el("div", "where", c.sec));
       al.appendChild(li);
     });
-    doc.appendChild(al);
-    doc.appendChild(el("p", null, "Responsable de la levée des écarts : le manager du site. Les points critiques signalés sur place devaient être corrigés avant la fin du service. Une contre-visite inopinée vérifiera la levée de chaque écart."));
+    pa.appendChild(al);
+    const p = el("div", "pad");
+    p.appendChild(el("p", null, "Responsable de la levée des écarts : le manager du site. Les points critiques signalés sur place devaient être corrigés avant la fin du service. Une contre-visite inopinée vérifiera la levée de chaque écart."));
+    pa.appendChild(p);
   } else {
-    doc.appendChild(el("p", null, "Aucun écart à traiter. Le niveau constaté est à maintenir ; une visite de suivi confirmera la stabilité des bonnes pratiques."));
+    const p = el("div", "pad");
+    p.appendChild(el("p", null, "Aucun écart à traiter. Le niveau constaté est à maintenir ; une visite de suivi confirmera la stabilité des bonnes pratiques."));
+    pa.appendChild(p);
   }
+  doc.appendChild(pa);
 
-  // Signatures
+  // ── Signatures ──
+  const sg = card(null);
   const sig = el("div", "sig");
   const s1 = el("div"); s1.appendChild(el("div", "line", "Le contrôleur — au nom de la direction"));
   const s2 = el("div"); s2.appendChild(el("div", "line", "Pris connaissance — le manager du site"));
   sig.appendChild(s1); sig.appendChild(s2);
-  doc.appendChild(sig);
-  doc.appendChild(el("p", "gen", "Rapport généré automatiquement à partir de la checklist de contrôle Koulway. Les photos prises pendant la visite complètent ce rapport."));
+  sg.appendChild(sig);
+  sg.appendChild(el("p", "gen", "Rapport généré automatiquement à partir de la checklist de contrôle Koulway. Les photos prises pendant la visite complètent ce rapport."));
+  doc.appendChild(sg);
 
   document.title = "Rapport de contrôle — " + (d.site || "Koulway");
 }
