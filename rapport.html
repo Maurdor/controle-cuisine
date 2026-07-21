@@ -191,6 +191,27 @@
 
   #err { max-width: 640px; margin: 60px auto; text-align: center; color: var(--muted); padding: 0 16px; }
   #err a { color: var(--accent); }
+
+  .pub-panel {
+    position: fixed; left: 12px; right: 12px; bottom: calc(78px + env(safe-area-inset-bottom));
+    max-width: 616px; margin: 0 auto; z-index: 20;
+    background: var(--card); border: 1.5px solid var(--accent); border-radius: 14px;
+    padding: 14px 16px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+    max-height: 60vh; overflow-y: auto;
+  }
+  .pub-panel .gname { margin-top: 0; }
+  .steps { padding-left: 18px; font-size: 13px; margin: 8px 0; }
+  .steps li { margin: 5px 0; }
+  input.tok {
+    width: 100%; font: inherit; font-size: 14px; padding: 10px;
+    border: 1.5px solid var(--accent); border-radius: 8px;
+    background: var(--card); color: var(--ink); margin: 8px 0 2px;
+  }
+  input.tok:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .pub-link { word-break: break-all; font-weight: 600; font-size: 13.5px; }
+  .pub-link a { color: var(--accent); }
+  .perr { color: var(--crit); font-size: 13px; font-weight: 600; }
+  .pnote { font-size: 12.5px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -199,10 +220,12 @@
   <p>Ouvre ce rapport depuis le bouton <b>📄 Rapport</b> de la <a href="./">checklist</a>.</p>
 </div>
 <main class="wrap" id="doc" hidden></main>
+<div id="pub-panel" class="pub-panel no-print" hidden></div>
 <footer class="toolbar no-print">
   <div class="wrap">
-    <button id="btn-print">PDF</button>
-    <button id="btn-copy" class="ghost">Copier le lien</button>
+    <button id="btn-pub">🌐 Publier</button>
+    <button id="btn-print" class="ghost">PDF</button>
+    <button id="btn-copy" class="ghost">Lien</button>
     <a id="btn-wa" class="ghost" target="_blank" rel="noopener">WhatsApp</a>
   </div>
 </footer>
@@ -592,12 +615,126 @@ function render(d) {
   document.title = "Rapport de contrôle — " + (d.site || "Koulway");
 }
 
+// ── Publication automatique : le téléphone écrit le rapport dans le dépôt GitHub. ──
+const PUB = { owner: "Maurdor", repo: "controle-cuisine", tokenKey: "koulway-gh-token" };
+
+function slugify(s) {
+  return (s || "").toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+function panel() {
+  const p = document.getElementById("pub-panel");
+  p.hidden = false;
+  p.textContent = "";
+  return p;
+}
+function closePanel() { document.getElementById("pub-panel").hidden = true; }
+
+function askToken(msg) {
+  const p = panel();
+  p.appendChild(el("div", "gname", "Configuration de la publication (une seule fois)"));
+  if (msg) p.appendChild(el("p", "perr", msg));
+  const ol = el("ol", "steps");
+  [
+    "Sur github.com, connecté avec ton compte : Settings → Developer settings → Personal access tokens → Fine-grained tokens → « Generate new token ».",
+    "Repository access : « Only select repositories » → controle-cuisine.",
+    "Permissions → Contents : « Read and write ». Expiration : 1 an. Génère le token et copie-le."
+  ].forEach(s => ol.appendChild(el("li", null, s)));
+  p.appendChild(el("p", "pnote", "Cette clé ne donne accès qu'au site des rapports, elle reste uniquement sur ce téléphone, et tu peux la révoquer à tout moment depuis GitHub."));
+  const inp = el("input", "tok");
+  inp.type = "password";
+  inp.placeholder = "Colle le token ici";
+  p.appendChild(inp);
+  const row = el("div", "edit-actions");
+  const ok = el("button", "mini solid", "Enregistrer et publier");
+  ok.addEventListener("click", () => {
+    const t = inp.value.trim();
+    if (!t) return;
+    localStorage.setItem(PUB.tokenKey, t);
+    publish();
+  });
+  const ann = el("button", "mini", "Annuler");
+  ann.addEventListener("click", closePanel);
+  row.appendChild(ok);
+  row.appendChild(ann);
+  p.appendChild(row);
+}
+
+async function publish() {
+  if (!data || !data.states) return;
+  const token = localStorage.getItem(PUB.tokenKey);
+  if (!token) return askToken();
+  const slug = slugify(data.site) ||
+    "controle-" + new Date(data.ts || Date.now()).toISOString().slice(0, 10);
+  const p = panel();
+  p.appendChild(el("div", "gname", "Publication en cours…"));
+  const api = "https://api.github.com/repos/" + PUB.owner + "/" + PUB.repo + "/contents/rapports/" + slug + ".json";
+  const headers = { "Authorization": "Bearer " + token, "Accept": "application/vnd.github+json" };
+  try {
+    let sha;
+    const g = await fetch(api, { headers });
+    if (g.ok) sha = (await g.json()).sha;
+    else if (g.status === 401) {
+      localStorage.removeItem(PUB.tokenKey);
+      return askToken("Token refusé — vérifie-le et colle-le à nouveau.");
+    }
+    const body = { message: "Rapport " + (data.site || slug), content: btoa(unescape(encodeURIComponent(JSON.stringify(data)))) };
+    if (sha) body.sha = sha;
+    const put = await fetch(api, { method: "PUT", headers, body: JSON.stringify(body) });
+    if (put.status === 401 || put.status === 403) {
+      localStorage.removeItem(PUB.tokenKey);
+      return askToken("Token refusé ou permissions insuffisantes : il faut « Contents : Read and write » sur le dépôt controle-cuisine.");
+    }
+    if (!put.ok) throw new Error("HTTP " + put.status);
+    const shortUrl = "https://" + PUB.owner.toLowerCase() + ".github.io/" + PUB.repo + "/rapport.html?r=" + slug;
+    p.textContent = "";
+    p.appendChild(el("div", "gname", "Rapport publié ✓"));
+    const lk = el("p", "pub-link");
+    const a = el("a", null, shortUrl);
+    a.href = shortUrl;
+    a.target = "_blank";
+    lk.appendChild(a);
+    p.appendChild(lk);
+    p.appendChild(el("p", "pnote", "La page sera en ligne dans une minute environ (mise à jour du site). Republier le même contrôle met à jour la même page."));
+    const row = el("div", "edit-actions");
+    const cp = el("button", "mini solid", "Copier le lien court");
+    cp.addEventListener("click", () => {
+      navigator.clipboard.writeText(shortUrl).then(() => {
+        cp.textContent = "Copié ✓";
+        setTimeout(() => { cp.textContent = "Copier le lien court"; }, 1800);
+      });
+    });
+    const wa = el("a", "mini", "WhatsApp");
+    wa.href = "https://wa.me/?text=" + encodeURIComponent("Rapport de contrôle cuisine" + (data.site ? " — " + data.site : "") + " :\n" + shortUrl);
+    wa.target = "_blank";
+    const cl = el("button", "mini", "Fermer");
+    cl.addEventListener("click", closePanel);
+    row.appendChild(cp);
+    row.appendChild(wa);
+    row.appendChild(cl);
+    p.appendChild(row);
+    navigator.clipboard.writeText(shortUrl);
+  } catch (e) {
+    p.textContent = "";
+    p.appendChild(el("div", "gname", "Échec de la publication"));
+    p.appendChild(el("p", "perr", "Erreur : " + e.message + ". Vérifie la connexion internet et réessaie."));
+    const cl = el("button", "mini", "Fermer");
+    cl.addEventListener("click", closePanel);
+    p.appendChild(cl);
+  }
+}
+
+document.getElementById("btn-pub").addEventListener("click", publish);
+if (reportId) document.getElementById("btn-pub").style.display = "none";
+
 document.getElementById("btn-print").addEventListener("click", () => window.print());
 document.getElementById("btn-copy").addEventListener("click", function () {
   const b = this;
   navigator.clipboard.writeText(location.href).then(() => {
-    b.textContent = "Lien copié ✓";
-    setTimeout(() => { b.textContent = "Copier le lien"; }, 1800);
+    b.textContent = "Copié ✓";
+    setTimeout(() => { b.textContent = "Lien"; }, 1800);
   });
 });
 function setWa() {
