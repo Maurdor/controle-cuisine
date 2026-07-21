@@ -75,9 +75,14 @@
   .g-a { background: var(--ok); } .g-b { background: var(--accent); }
   .g-c { background: var(--nc); } .g-d { background: var(--crit); }
   .glabel { font-size: 13.5px; color: var(--muted); margin-top: 6px; }
+  .dist {
+    display: flex; height: 10px; border-radius: 5px; overflow: hidden;
+    margin: 2px 16px 10px; background: var(--line);
+  }
+  .dist span { display: block; height: 100%; }
   .stats {
     display: flex; flex-wrap: wrap; gap: 6px;
-    padding: 2px 16px 16px; font-size: 12.5px; font-variant-numeric: tabular-nums;
+    padding: 0 16px 16px; font-size: 12.5px; font-variant-numeric: tabular-nums;
   }
   .stats span {
     padding: 3px 10px; border-radius: 999px;
@@ -313,6 +318,17 @@ function render(d) {
   side.appendChild(el("div", "glabel", grade ? GRADE_LABELS[grade] : "Aucun point évalué."));
   sr.appendChild(side);
   hero.appendChild(sr);
+  if (evalTot > 0) {
+    const dist = el("div", "dist");
+    [[okTot, "var(--ok)"], [ncTot, "var(--nc)"], [critTot, "var(--crit)"]].forEach(sg => {
+      if (!sg[0]) return;
+      const s = el("span");
+      s.style.width = (sg[0] / evalTot * 100) + "%";
+      s.style.background = sg[1];
+      dist.appendChild(s);
+    });
+    hero.appendChild(dist);
+  }
   const st = el("div", "stats");
   st.appendChild(el("span", null, evalTot + "/" + scoreableTot + " évalués"));
   st.appendChild(el("span", "s-ok", okTot + " conformes"));
@@ -344,33 +360,8 @@ function render(d) {
   syn.appendChild(sp);
   doc.appendChild(syn);
 
-  // ── 2. Points critiques ──
-  if (critL.length) {
-    const cc = card("2 · Points critiques — correction immédiate");
-    cc.className = "card critical";
-    renderGroups(cc, critL, true);
-    doc.appendChild(cc);
-  } else {
-    const cc = card("2 · Points critiques");
-    const p = el("div", "pad");
-    p.appendChild(el("p", null, "Aucun point critique relevé lors de cette visite."));
-    cc.appendChild(p);
-    doc.appendChild(cc);
-  }
-
-  // ── 3. Non-conformités ──
-  const nc = card("3 · Non-conformités relevées");
-  if (ncL.length) {
-    renderGroups(nc, ncL, false);
-  } else {
-    const p = el("div", "pad");
-    p.appendChild(el("p", null, "Aucune non-conformité simple relevée."));
-    nc.appendChild(p);
-  }
-  doc.appendChild(nc);
-
-  // ── 4. Résultats par poste ──
-  const res = card("4 · Résultats par poste");
+  // ── 2. Résultats par poste (graphique) ──
+  const res = card("2 · Résultats par poste");
   perSec.forEach(s => {
     const po = el("div", "poste");
     const top = el("div", "top");
@@ -391,6 +382,31 @@ function render(d) {
     res.appendChild(po);
   });
   doc.appendChild(res);
+
+  // ── 3. Points critiques ──
+  if (critL.length) {
+    const cc = card("3 · Points critiques — correction immédiate");
+    cc.className = "card critical";
+    renderGroups(cc, critL, true);
+    doc.appendChild(cc);
+  } else {
+    const cc = card("3 · Points critiques");
+    const p = el("div", "pad");
+    p.appendChild(el("p", null, "Aucun point critique relevé lors de cette visite."));
+    cc.appendChild(p);
+    doc.appendChild(cc);
+  }
+
+  // ── 4. Non-conformités ──
+  const nc = card("4 · Non-conformités relevées");
+  if (ncL.length) {
+    renderGroups(nc, ncL, false);
+  } else {
+    const p = el("div", "pad");
+    p.appendChild(el("p", null, "Aucune non-conformité simple relevée."));
+    nc.appendChild(p);
+  }
+  doc.appendChild(nc);
 
   // ── 5. Observations du contrôleur ──
   const hasNotes = perSec.some(s => tidy(notes[s.sec.id]).length);
